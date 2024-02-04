@@ -15,5 +15,6 @@ if __name__ == "__main__":
     solution = insert_cargo_to_container(solution, 3, 0, np.eye(3,3), np.asanyarray([0,0,0]))
     solution = insert_cargo_to_container(solution, 0, 0, np.eye(3,3), np.asanyarray([0,1,0]))
     solution = insert_cargo_to_container(solution, 2, 0, np.eye(3,3), np.asanyarray([0,2,0]))
-    solution = insert_many_cargo_to_one(solution, np.asanyarray([1,4,5], dtype=int), 0)
+    solution = insert_cargo_to_container(solution, 1, 0, np.eye(3,3), np.asanyarray([0,0,1]))
+    solution = insert_many_cargo_to_one(solution, np.asanyarray([4,5,6], dtype=int), 0)
     

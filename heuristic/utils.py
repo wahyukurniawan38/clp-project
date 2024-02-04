@@ -48,3 +48,30 @@ def check_collision_3d_vectorized(p_min, p_max, q_min, q_max):
     not_col = np.logical_or(not_col1, not_col2)
     is_collide = np.logical_not(not_col)
     return is_collide
+
+def check_collision_3d_vectorized_multi_source(p_min, p_max, q_min, q_max):
+    # print(p_min.shape. q_min.shape)
+    # exit()
+    not_col1 = np.any(p_min[:, np.newaxis,:] > q_max[np.newaxis,:,:], axis=2)
+    not_col2 = np.any(p_max[:, np.newaxis,:] < q_min[np.newaxis,:,:], axis=2)
+    not_col = np.logical_or(not_col1, not_col2)
+    is_collide = np.logical_not(not_col)
+    return is_collide
+
+"""
+    suppose there are 2d surfaces in 3d space
+    this function computes their collision
+    ofc, only ones that collide in xy axis AND has the same height (same z values) collide
+"""
+def compute_xy_collision_multi_source(p_s0:np.ndarray, p_s1:np.ndarray, z_s0:np.ndarray, z_s1:np.ndarray):
+    p_s0,p_s1 = p_s0[:,np.newaxis,:], p_s1[:,np.newaxis,:] 
+    z_s0,z_s1 = z_s0[np.newaxis,:,:], z_s1[np.newaxis,:,:] 
+    a = np.maximum(p_s0,z_s0)
+    b = np.minimum(p_s1,z_s1)
+    diffs = b-a
+    is_same_height = diffs[:,:,2]==0
+    diffs = diffs[:,:,:2]
+    diffs[diffs<0] = 0
+    collision_area = np.prod(diffs, axis=-1)
+    total_collision_area = np.sum(collision_area*is_same_height, axis=-1)
+    return total_collision_area
