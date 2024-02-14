@@ -25,106 +25,67 @@ def init_insertion_points(container_dim:np.ndarray,
     insertion_points = np.unique(np.concatenate(insertion_points, axis=0),axis=0)
     return insertion_points
 
-"""  
-  +------+ 
- /|     /| 
-+-+----+ | <-It's this side
-| |    | | the surface that moves along the x-axis
-| +----+-+ for the x-axis projection
-|/     |/  
-+------+   
 """
-def get_x_surfaces(container_dim:np.ndarray,
-                    cc_dims:np.ndarray,
-                    cc_positions:np.ndarray)->Tuple[np.ndarray, np.ndarray]:
-    x_s0 = cc_positions + cc_dims*np.asanyarray([[1,0,0]])
-    x_s1 = cc_positions + cc_dims
-    x_s0 = np.append(x_s0, np.zeros([1,3]),axis=0)
-    x_s1 = np.append(x_s1, [container_dim-container_dim*np.asanyarray([1,0,0])], axis=0)
-    return x_s0, x_s1
+    this is simple
+    create a 3D line between the point
+    and another point whose the axis to be projected
+    is a negative number (any neg number)
+    say the point is (1,2,3)
+    projected to y axis (axis=1)
+    then the line is
+    (1,-1,3)(1,2,3)
+    any box's right surface colliding with
+    this line is compiled, then the projection
+    is at the rightest surface
 
-"""  
-     | it's this surface,
-     v that moves along the y-axis
-  +------+  it is NOT the top lid
- /|     /| 
-+-+----+ | 
-| |    | | 
-| +----+-+ 
-|/     |/  
-+------+   
-"""
-def get_y_surfaces(container_dim:np.ndarray,
-                    cc_dims:np.ndarray,
-                    cc_positions:np.ndarray)->Tuple[np.ndarray, np.ndarray]:
-    y_s0 = cc_positions + cc_dims*np.asanyarray([[0,1,0]])
-    y_s1 = cc_positions + cc_dims
-    y_s0 = np.append(y_s0, np.zeros([1,3]),axis=0)
-    y_s1 = np.append(y_s1, [container_dim-container_dim*np.asanyarray([0,1,0])], axis=0)
-    return y_s0, y_s1
-
-"""  
-     | it's the TOP LID now,
-     v that moves along the z-axis
-  +------+  
- /|     /| 
-+-+----+ | 
-| |    | | 
-| +----+-+ 
-|/     |/  
-+------+   
-"""
-def get_z_surfaces(container_dim:np.ndarray,
-                    cc_dims:np.ndarray,
-                    cc_positions:np.ndarray)->Tuple[np.ndarray, np.ndarray]:
-    z_s0 = cc_positions + cc_dims*np.asanyarray([[0,0,1]])
-    z_s1 = cc_positions + cc_dims
-    z_s0 = np.append(z_s0, np.zeros([1,3]),axis=0)
-    z_s1 = np.append(z_s1, [container_dim-container_dim*np.asanyarray([0,0,1])], axis=0)
-    return z_s0, z_s1
-
-def get_bottom_surfaces(cc_dims:np.ndarray=None,
-                       cc_positions:np.ndarray=None)->Tuple[np.ndarray, np.ndarray]:
-    z_s0 = cc_positions
-    z_s1 = cc_positions + cc_dims*np.asanyarray([[1,1,0]])
-    return z_s0, z_s1
-"""
-    In the original, support area for insertion point is not considered
-    I think this limits the possible solution.
-    Support area only checked in insertion feasibility, not here.
-
-    p (3,)
+    point (3,)
     container_dim (3,)
     cc_dims (N,3)
     cc_positions (N,3)
     axis=0 means x-axis, 1=y-axis, 2=z-axis
 """      
-def project_extreme_point(p: np.ndarray,
+def project_extreme_point(point: np.ndarray,
                           container_dim:np.ndarray,
                           cc_dims:np.ndarray,
                           cc_positions:np.ndarray,
                           axis:int=0):
     if axis==0:
-        p0 = p - 999999*np.asanyarray([1,0,0])
-        x_s0, x_s1 = get_x_surfaces(container_dim, cc_dims, cc_positions)
-        is_collide = check_collision_3d_vectorized(p0, p, x_s0, x_s1)
-        collide_point = x_s1[is_collide,0]
-        p[0] = np.max(collide_point)
-        return p
+        line_pos = point - 999999*np.asanyarray([1,0,0])
+        line_dim = point - line_pos
+        cc_front_pos, cc_front_dim = get_front_surface(cc_positions, cc_dims)
+        container_back_pos = np.asanyarray([[0,0,0]])
+        container_back_dim = (container_dim-container_dim*np.asanyarray([1,0,0]))[np.newaxis,:]
+        cc_front_pos = np.concatenate([cc_front_pos, container_back_pos], axis=0)
+        cc_front_dim = np.concatenate([cc_front_dim, container_back_dim], axis=0)
+        is_collide = is_collide_3d(line_pos[np.newaxis,:], line_dim[np.newaxis, :], cc_front_pos, cc_front_dim)
+        is_collide = is_collide[0,:]
+        collide_point = cc_front_pos[is_collide, axis]
     if axis==1:
-        p0 = p - 999999*np.asanyarray([0,1,0])
-        y_s0, y_s1 = get_y_surfaces(container_dim, cc_dims, cc_positions)
-        is_collide = check_collision_3d_vectorized(p0, p, y_s0, y_s1)
-        collide_point = y_s1[is_collide,1]
-        p[1] = np.max(collide_point)
-        return p
-    # # if axis==2
-    p0 = p - 999999*np.asanyarray([0,0,1])
-    z_s0, z_s1 = get_z_surfaces(container_dim, cc_dims, cc_positions)
-    is_collide = check_collision_3d_vectorized(p0, p, z_s0, z_s1)
-    collide_point = z_s1[is_collide,2]
-    p[2] = np.max(collide_point)
-    return p
+        line_pos = point - 999999*np.asanyarray([0,1,0])
+        line_dim = point - line_pos
+        cc_right_pos, cc_right_dim = get_right_surface(cc_positions, cc_dims)
+        container_left_pos = np.asanyarray([[0,0,0]])
+        container_left_dim = (container_dim-container_dim*np.asanyarray([0,1,0]))[np.newaxis,:]
+        cc_right_pos = np.concatenate([cc_right_pos, container_left_pos], axis=0)
+        cc_right_dim = np.concatenate([cc_right_dim, container_left_dim], axis=0)
+        is_collide = is_collide_3d(line_pos[np.newaxis,:], line_dim[np.newaxis, :], cc_right_pos, cc_right_dim)
+        is_collide = is_collide[0,:]
+        collide_point = cc_right_pos[is_collide, axis]
+    if axis==2:
+        line_pos = point - 999999*np.asanyarray([0,0,1])
+        line_dim = point - line_pos
+        cc_top_pos, cc_top_dim = get_right_surface(cc_positions, cc_dims)
+        container_bottom_pos = np.asanyarray([[0,0,0]])
+        container_bottom_dim = (container_dim-container_dim*np.asanyarray([0,0,1]))[np.newaxis,:]
+        cc_top_pos = np.concatenate([cc_top_pos, container_bottom_pos], axis=0)
+        cc_top_dim = np.concatenate([cc_top_dim, container_bottom_dim], axis=0)
+        is_collide = is_collide_3d(line_pos[np.newaxis,:], line_dim[np.newaxis, :], cc_top_pos, cc_top_dim)
+        is_collide = is_collide[0,:]
+        collide_point = cc_top_pos[is_collide, axis]
+    if len(collide_point)>0:
+        point[axis] = np.max(collide_point)
+    return point
+    
 
 """
     cc_ prefix means cargo already inside the container
@@ -151,7 +112,7 @@ def find_ip_and_cargo_idx(container_dim:np.ndarray,
             c_volume = c_volumes[[i]]
             feasibility_mask = get_feasibility_mask(container_dim, cc_dims, cc_positions, cc_filled_weight, cc_max_weight, insertion_points, c_dim, c_weight, c_volume)
             if np.any(feasibility_mask):
-                ip_idx = np.argwhere(feasibility_mask)[0,1]
+                ip_idx = np.argmax(feasibility_mask[0,:])
                 chosen_cargo_idx = i
                 break
         return ip_idx, chosen_cargo_idx
@@ -167,7 +128,6 @@ def get_feasibility_mask(container_dim:np.ndarray,
                           c_volumes:np.ndarray):
     n_cargo = len(c_dims)
     n_ip = len(insertion_points)
-    
     # the weight capacity can fit the cargo
     is_weight_cap_enough = c_weights + cc_filled_weight <= cc_max_weight
     is_weight_cap_enough = np.repeat(is_weight_cap_enough, n_ip, axis=0)
@@ -179,22 +139,34 @@ def get_feasibility_mask(container_dim:np.ndarray,
     # repeat cargo dims n_insert_points times
     c_dims_ = np.repeat(c_dims, n_ip, axis=0)
     insertion_points_ = np.tile(insertion_points, [n_cargo,1])
-    is_collide_all = check_collision_3d_vectorized_multi_source(insertion_points_, insertion_points_+c_dims_, cc_positions, cc_dims)
+    is_collide_all = is_collide_3d(insertion_points_, c_dims_, cc_positions, cc_dims)
     is_collide_with_any = np.any(is_collide_all, axis=1)
-    is_not_collide = np.logical_not(is_collide_with_any)
-    
+    is_not_collide_with_any = np.logical_not(is_collide_with_any)
+    # print(is_not_collide_with_any)
+
 
     # check if the, say, i-th cargo is inserted at the j-th position
     # enough base support is provided 
-    z_s0, z_s1 = get_z_surfaces(container_dim, cc_dims, cc_positions)
-    p_s0, p_s1 = get_bottom_surfaces(c_dims_, insertion_points_)
-    base_support_area = compute_xy_collision_multi_source(p_s0, p_s1, z_s0, z_s1)
+    c_bottom_pos_, c_bottom_dims_ = get_bottom_surface(insertion_points_, c_dims_)
+    container_bottom_pos, container_bottom_dim = get_bottom_surface(np.asanyarray([[0,0,0]]), container_dim[np.newaxis,:])
+    cc_top_pos, cc_top_dim = get_top_surface(cc_positions, cc_dims)
+    cc_top_pos = np.concatenate([cc_top_pos, container_bottom_pos], axis=0)
+    cc_top_dim = np.concatenate([cc_top_dim, container_bottom_dim])
+    is_on_top = c_bottom_pos_[:,np.newaxis,2] == cc_top_pos[np.newaxis,:,2]
+    base_support_area = compute_collision(c_bottom_pos_[:,:2], c_bottom_dims_[:,:2], cc_top_pos[:,:2], cc_top_dim[:,:2])
+    base_support_area *= is_on_top
+    base_support_area = np.sum(base_support_area, axis=-1)
     base_area = c_dims_[:,0]*c_dims_[:,1]
     supported_base_area_ratio = base_support_area/base_area
     is_base_supported = supported_base_area_ratio>0.5
-
-    feasibility_mask = np.logical_and(is_base_supported, is_collide_with_any)
+    
+    # check if overflow the container
+    is_not_overflow = (c_dims_ + insertion_points_) <= container_dim[np.newaxis,:]
+    is_not_overflow = np.all(is_not_overflow, axis=-1)
+    # combine all
+    feasibility_mask = np.logical_and(is_base_supported, is_not_collide_with_any)
     feasibility_mask = np.logical_and(feasibility_mask, is_weight_cap_enough)
+    feasibility_mask = np.logical_and(feasibility_mask, is_not_overflow)
     feasibility_mask = feasibility_mask.reshape([n_cargo, n_ip])
     return feasibility_mask
 
@@ -205,7 +177,7 @@ def argsort_cargo(c_dims:np.ndarray,
                 cargo_sort:str="volume-height"):
     if cargo_sort == "volume-height":
         c_heights = c_dims[:, 2]
-        sorted_idx = np.lexsort((-c_volumes, -c_heights),axis=0)
+        sorted_idx = np.lexsort((-c_volumes, -c_heights, -c_weights),axis=0)
     return sorted_idx
 
 

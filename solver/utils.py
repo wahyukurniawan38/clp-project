@@ -1,6 +1,7 @@
 from copy import deepcopy
 from typing import List
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 from solver.problem import Problem
@@ -71,3 +72,42 @@ def get_possible_rotation_mats():
     possible_rotation_mats = [eye[[r],:] for r in row_permutations]
     possible_rotation_mats = np.concatenate(possible_rotation_mats, axis=0)
     return possible_rotation_mats
+
+def plot_cube(ax, x, y, z, dx, dy, dz, color='red', text_annot:str=""):
+    """ Auxiliary function to plot a cube. code taken somewhere from the web.  """
+    xx = [x, x, x+dx, x+dx, x]
+    yy = [y, y+dy, y+dy, y, y]
+    kwargs = {'alpha': 1, 'color': color}
+    artists = []
+    artists+= ax.plot3D(xx, yy, [z]*5, **kwargs)
+    artists+= ax.plot3D(xx, yy, [z+dz]*5, **kwargs)
+    artists+= ax.plot3D([x, x], [y, y], [z, z+dz], **kwargs)
+    artists+= ax.plot3D([x, x], [y+dy, y+dy], [z, z+dz], **kwargs)
+    artists+= ax.plot3D([x+dx, x+dx], [y+dy, y+dy], [z, z+dz], **kwargs)
+    artists+= ax.plot3D([x+dx, x+dx], [y, y], [z, z+dz], **kwargs)
+    if text_annot!="":
+        artists+= [ax.text(x+dx/2,y,z+dz/2,text_annot,None,fontweight=1000)]
+    return artists
+
+def visualize_box(container_dim:np.ndarray,
+                  cc_positions:np.ndarray,
+                  cc_dims:np.ndarray,
+                  cc_rotation_mats:np.ndarray):
+    
+    fig = plt.figure()
+    axGlob = fig.add_subplot(projection='3d')
+    # . plot scatola 
+    plot_cube(axGlob,0, 0, 0, float(container_dim[0]), float(container_dim[1]), float(container_dim[2]))
+    # . plot intems in the box 
+    colorList = ["black", "blue", "magenta", "orange"]
+    counter = 0
+    cc_real_dims = (cc_dims[:,np.newaxis,:]*cc_rotation_mats).sum(axis=-1)
+    for i in range(len(cc_dims)):
+        x,y,z = cc_positions[i,0],cc_positions[i,1],cc_positions[i,2]
+        color = colorList[counter % len(colorList)]
+        plot_cube(axGlob, float(x), float(y), float(z), 
+                    float(cc_real_dims[i,0]), float(cc_real_dims[i,1]), float(cc_real_dims[i,2]),
+                    color=color,text_annot=str(i))
+        counter = counter + 1  
+    plt.show() 
+

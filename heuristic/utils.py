@@ -27,51 +27,101 @@ def insert_cargo_to_container(solution:Solution,
     return solution
 
 
-def check_collision_3d(p_min, p_max, q_min, q_max):
-    if p_min[0] > q_max[0]:
-        return False
-    if p_max[0] < q_min[0]:
-        return False
-    if p_min[1] > q_max[1]:
-        return False
-    if p_max[1] < q_min[1]:
-        return False
-    if p_min[2] > q_max[2]:
-        return False
-    if p_max[2] < q_min[2]:
-        return False
-    return True
+"""
+    pos1: (n1x3)
+    dim1: (n1x3)
+    pos2: (n2x3)
+    dim2: (n2x3)
 
-def check_collision_3d_vectorized(p_min, p_max, q_min, q_max):
-    not_col1 = np.max(p_min > q_max, axis=1)
-    not_col2 = np.max(p_max < q_min, axis=1)
-    not_col = np.logical_or(not_col1, not_col2)
-    is_collide = np.logical_not(not_col)
-    return is_collide
-
-def check_collision_3d_vectorized_multi_source(p_min, p_max, q_min, q_max):
-    # print(p_min.shape. q_min.shape)
-    # exit()
-    not_col1 = np.any(p_min[:, np.newaxis,:] > q_max[np.newaxis,:,:], axis=2)
-    not_col2 = np.any(p_max[:, np.newaxis,:] < q_min[np.newaxis,:,:], axis=2)
-    not_col = np.logical_or(not_col1, not_col2)
-    is_collide = np.logical_not(not_col)
+    output: boolean matrix is collision happens between each pair
+    out: (n1xn2)
+"""
+def is_collide_3d(pos1: np.ndarray, 
+                  dim1: np.ndarray,
+                  pos2: np.ndarray,
+                  dim2: np.ndarray) -> np.ndarray:
+    cp1 = pos1+dim1
+    cp2 = pos2+dim2
+    is_not_collide1 = np.any(pos1[:,np.newaxis,:] >= cp2[np.newaxis,:,:], axis=2)
+    is_not_collide2 = np.any(cp1[:,np.newaxis,:] <= pos2[np.newaxis,:,:], axis=2)
+    is_not_collide = np.logical_or(is_not_collide1, is_not_collide2)
+    is_collide = np.logical_not(is_not_collide)
     return is_collide
 
 """
-    suppose there are 2d surfaces in 3d space
-    this function computes their collision
-    ofc, only ones that collide in xy axis AND has the same height (same z values) collide
+    pos1: (n1xd)
+    dim1: (n1xd)
+    pos2: (n2xd)
+    dim2: (n2xd)
+    d = {1,2,3}
+    output: matrix of collision area/volume of each pair
+    out: (n1xn2)
 """
-def compute_xy_collision_multi_source(p_s0:np.ndarray, p_s1:np.ndarray, z_s0:np.ndarray, z_s1:np.ndarray):
-    p_s0,p_s1 = p_s0[:,np.newaxis,:], p_s1[:,np.newaxis,:] 
-    z_s0,z_s1 = z_s0[np.newaxis,:,:], z_s1[np.newaxis,:,:] 
-    a = np.maximum(p_s0,z_s0)
-    b = np.minimum(p_s1,z_s1)
-    diffs = b-a
-    is_same_height = diffs[:,:,2]==0
-    diffs = diffs[:,:,:2]
-    diffs[diffs<0] = 0
-    collision_area = np.prod(diffs, axis=-1)
-    total_collision_area = np.sum(collision_area*is_same_height, axis=-1)
-    return total_collision_area
+def compute_collision(pos1: np.ndarray, 
+                        dim1: np.ndarray,
+                        pos2: np.ndarray,
+                        dim2: np.ndarray) -> np.ndarray:
+    cp1 = pos1+dim1
+    cp2 = pos2+dim2
+    low_collision_pos = np.maximum(pos1[:, np.newaxis,:], pos2[np.newaxis,:,:])
+    high_collision_pos = np.minimum(cp1[:, np.newaxis,:], cp2[np.newaxis,:,:])
+    collision_width = high_collision_pos-low_collision_pos
+    collision_area = np.prod(collision_width, axis=-1)
+    collision_area = np.clip(collision_area, a_min=0, a_max=None)
+    return collision_area
+
+"""
+    it's actually just simple indexing
+    pos: nx3
+    dim: nx3
+
+    out:
+        top_pos: nx3
+        top_dim: nx3
+"""
+def get_top_surface(pos, dim):
+    top_pos = pos + dim * np.asanyarray([[0,0,1]])
+    top_dim = dim - dim * np.asanyarray([[0,0,1]])
+    return top_pos, top_dim
+
+"""
+    it's actually just simple indexing
+    pos: nx3
+    dim: nx3
+
+    out:
+        bot_pos: nx3
+        bot_dim: nx3
+"""
+def get_bottom_surface(pos, dim):
+    bot_pos = pos
+    bot_dim = dim - dim * np.asanyarray([[0,0,1]])
+    return bot_pos, bot_dim
+
+"""
+    it's actually just simple indexing
+    pos: nx3
+    dim: nx3
+
+    out:
+        right_pos: nx3
+        right_dim: nx3
+"""
+def get_right_surface(pos, dim):
+    right_pos = pos + dim * np.asanyarray([[0,1,0]])
+    right_dim = dim - dim * np.asanyarray([[0,1,0]])
+    return right_pos, right_dim
+
+"""
+    it's actually just simple indexing
+    pos: nx3
+    dim: nx3
+
+    out:
+        front_pos: nx3
+        front_dim: nx3
+"""
+def get_front_surface(pos, dim):
+    front_pos = pos + dim * np.asanyarray([[1,0,0]])
+    front_dim = dim - dim * np.asanyarray([[1,0,0]])
+    return front_pos, front_dim
