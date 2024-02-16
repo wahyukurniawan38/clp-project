@@ -52,11 +52,13 @@ def read_from_file(instance_path):
             h = d_cargo_type["height"]
             dim = np.asanyarray([l,w,h], dtype=float)
             idav = np.asanyarray([1,1,1], dtype=int)
+            volume = None if "volume" not in d_cargo_type else d_cargo_type["volume"]
             cargo_type = CargoType(str(i),
                                    dim,
                                    idav,
                                    float(d_cargo_type["weight"]),
                                    float(d_cargo_type["cost"]),
-                                   int(d_cargo_type["num"]))
+                                   int(d_cargo_type["num"]),
+                                   volume=volume)
             cargo_type_list += [cargo_type]
         return Problem(cargo_type_list, container_type_list)
