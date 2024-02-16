@@ -1,0 +1,67 @@
+{
+     "container_types": [
+          {
+               "length": 1220,
+               "width": 240,
+               "height": 260,
+               "cost": 2000,
+               "max_weight": 27000,
+               "num": 0
+          },
+          {
+               "length": 600,
+               "width": 240,
+               "height": 260,
+               "cost": 1200,
+               "max_weight": 13000,
+               "num": 1
+          }
+     ],
+     "cargo_types": [
+          {
+               "length": 59.0,
+               "width": 41.0,
+               "height": 20.0,
+               "volume": 0.048,
+               "weight": 7.241,
+               "cost": 2.0,
+               "num": 72
+          },
+          {
+               "length": 54.0,
+               "width": 38.0,
+               "height": 12.0,
+               "volume": 0.025,
+               "weight": 3.848,
+               "cost": 1.0,
+               "num": 84
+          },
+          {
+               "length": 60.0,
+               "width": 40.0,
+               "height": 37.0,
+               "volume": 0.089,
+               "weight": 13.016,
+               "cost": 4.0,
+               "num": 52
+          },
+          {
+               "length": 60.0,
+               "width": 40.0,
+               "height": 36.0,
+               "volume": 0.086,
+               "weight": 12.673,
+               "cost": 4.0,
+               "num": 68
+          },
+          {
+               "length": 54.0,
+               "width": 38.0,
+               "height": 12.0,
+               "volume": 0.025,
+               "weight": 3.848,
+               "cost": 1.0,
+               "num": 59
+          }
+     ]
+}
