@@ -53,8 +53,8 @@ def project_extreme_point(point: np.ndarray,
         line_pos = point - 999999*np.asanyarray([1,0,0])
         line_dim = point - line_pos
         cc_front_pos, cc_front_dim = get_front_surface(cc_positions, cc_dims)
-        container_back_pos = np.asanyarray([[0,0,0]])
-        container_back_dim = (container_dim-container_dim*np.asanyarray([1,0,0]))[np.newaxis,:]
+        container_back_pos = np.asanyarray([[0,-1,-1]])
+        container_back_dim = np.asanyarray([[0,9999999,9999999]])
         cc_front_pos = np.concatenate([cc_front_pos, container_back_pos], axis=0)
         cc_front_dim = np.concatenate([cc_front_dim, container_back_dim], axis=0)
         is_collide = is_collide_3d(line_pos[np.newaxis,:], line_dim[np.newaxis, :], cc_front_pos, cc_front_dim)
@@ -64,8 +64,8 @@ def project_extreme_point(point: np.ndarray,
         line_pos = point - 999999*np.asanyarray([0,1,0])
         line_dim = point - line_pos
         cc_right_pos, cc_right_dim = get_right_surface(cc_positions, cc_dims)
-        container_left_pos = np.asanyarray([[0,0,0]])
-        container_left_dim = (container_dim-container_dim*np.asanyarray([0,1,0]))[np.newaxis,:]
+        container_left_pos = np.asanyarray([[-1,0,-1]])
+        container_left_dim = np.asanyarray([[9999999,0, 9999999]])
         cc_right_pos = np.concatenate([cc_right_pos, container_left_pos], axis=0)
         cc_right_dim = np.concatenate([cc_right_dim, container_left_dim], axis=0)
         is_collide = is_collide_3d(line_pos[np.newaxis,:], line_dim[np.newaxis, :], cc_right_pos, cc_right_dim)
@@ -74,13 +74,14 @@ def project_extreme_point(point: np.ndarray,
     if axis==2:
         line_pos = point - 999999*np.asanyarray([0,0,1])
         line_dim = point - line_pos
-        cc_top_pos, cc_top_dim = get_right_surface(cc_positions, cc_dims)
-        container_bottom_pos = np.asanyarray([[0,0,0]])
-        container_bottom_dim = (container_dim-container_dim*np.asanyarray([0,0,1]))[np.newaxis,:]
+        cc_top_pos, cc_top_dim = get_top_surface(cc_positions, cc_dims)
+        container_bottom_pos = np.asanyarray([[-1,-1,0]])
+        container_bottom_dim = np.asanyarray([[9999999,9999999,0]])
         cc_top_pos = np.concatenate([cc_top_pos, container_bottom_pos], axis=0)
         cc_top_dim = np.concatenate([cc_top_dim, container_bottom_dim], axis=0)
         is_collide = is_collide_3d(line_pos[np.newaxis,:], line_dim[np.newaxis, :], cc_top_pos, cc_top_dim)
         is_collide = is_collide[0,:]
+        
         collide_point = cc_top_pos[is_collide, axis]
     if len(collide_point)>0:
         point[axis] = np.max(collide_point)
@@ -170,14 +171,16 @@ def get_feasibility_mask(container_dim:np.ndarray,
     feasibility_mask = feasibility_mask.reshape([n_cargo, n_ip])
     return feasibility_mask
 
-
 def argsort_cargo(c_dims:np.ndarray, 
                 c_weights:np.ndarray, 
                 c_volumes:np.ndarray, 
-                cargo_sort:str="volume-height"):
-    if cargo_sort == "volume-height":
+                cargo_sort:str="volume-dec-height-inc"):
+    if cargo_sort == "volume-dec-height-dec":
         c_heights = c_dims[:, 2]
-        sorted_idx = np.lexsort((-c_volumes, -c_heights, -c_weights),axis=0)
+        sorted_idx = np.lexsort((-c_weights, -c_heights, -c_volumes),axis=0)
+    if cargo_sort == "volume-dec-height-inc":
+        c_heights = c_dims[:, 2]
+        sorted_idx = np.lexsort((-c_weights, c_heights, -c_volumes),axis=0)
     return sorted_idx
 
 

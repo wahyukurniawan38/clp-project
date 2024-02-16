@@ -24,16 +24,16 @@ rotation_list = [
 rotation_list = [np.asanyarray(rotation_list[i], dtype=float) for i in range(6)]
 
 """
-       +------------------+ 
-      /                  /|
-     /                  / |
-    +------------------+  |
-    |                  |  |
- z/h|                  |  +
-    |                  | /
-    |                  |/ y/w
-    +------------------+
-            x/l 
+                     +------------------+ 
+                    /                  /|
+                   /                  / |
+                  +------------------+  |
+                  |                  |  |
+ z/h (top, bottom)|                  |  +
+                  |                  | /
+                  |                  |/ y/w (right, left)
+                  +------------------+
+                          x/l (front-back)
 """
 class CargoType:
     def __init__(self,
@@ -56,12 +56,6 @@ class CargoType:
         self.rotation_mat = np.eye(3,3, dtype=float) if rotation_mat is None else rotation_mat
         self.weight = weight
 
-    # @property
-    # def size(self):
-    #     current_dim = self.dim_r * self.rotation_mat
-    #     current_dim = current_dim.sum(axis=1)
-    #     return current_dim
-    
     
     
     

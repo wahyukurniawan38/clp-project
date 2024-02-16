@@ -54,6 +54,8 @@ def insert_many_cargo_to_one(solution: Solution,
     c_real_dims = c_real_dims[sorted_idx]
 
     while True:
+        ip_sorted_idx = np.lexsort((insertion_points[:, 0],  insertion_points[:, 1], insertion_points[:, 2]), axis=0)
+        insertion_points = insertion_points[ip_sorted_idx]
         filled_weight = solution.container_filled_weights[container_idx]
         max_weight = solution.container_max_weights[container_idx]
         container_cargo_idxs = np.argwhere(solution.cargo_container_maps==container_idx).flatten()
@@ -76,7 +78,8 @@ def insert_many_cargo_to_one(solution: Solution,
         ip[3,:] = project_extreme_point(ip[3,:], container_dim, cc_real_dims, cc_positions, axis=2)
         ip[4,:] = project_extreme_point(ip[4,:], container_dim, cc_real_dims, cc_positions, axis=0)
         ip[5,:] = project_extreme_point(ip[5,:], container_dim, cc_real_dims, cc_positions, axis=1)
-        insertion_points = np.concatenate([insertion_points[:ip_idx,:], insertion_points[ip_idx+1:], ip])
+        insertion_points = np.delete(insertion_points, ip_idx, 0)
+        insertion_points = np.concatenate([insertion_points, ip])
         insertion_points = np.unique(insertion_points, axis=0)
         
         # update the attributes/ remove the chosen ones

@@ -1,3 +1,4 @@
+import json
 from typing import List
 
 import numpy as np
@@ -30,31 +31,32 @@ class Problem:
 
 def read_from_file(instance_path):
     with open(instance_path, "r") as instance_file:
-        lines = instance_file.readlines()
-        num_of_container_type = int(lines[0].split()[1])
+        d = json.load(instance_file)
         container_type_list = []
-        for i in range(1,num_of_container_type+1):
-            line = lines[i].split()
-            dim = np.asanyarray([float(line[1]),float(line[3]),float(line[5])], dtype=float)
-            
+        d_containter_types = d["container_types"]
+        for i, d_container_type in enumerate(d_containter_types):
+            l = d_container_type["length"]
+            w = d_container_type["width"]
+            h = d_container_type["height"]
+            dim = np.asanyarray([l,w,h], dtype=float)
             container_type = ContainerType(str(i),
-                                   dim,
-                                   float(line[7]),
-                                   int(line[9]))
+                                            dim,
+                                            d_container_type["max_weight"],
+                                            int(d_container_type["num"]))
             container_type_list += [container_type]
-        
-        num_cargo_type = int(lines[num_of_container_type+1].split()[1])
+        d_cargo_types = d["cargo_types"]
         cargo_type_list = []
-
-        for i in range(num_of_container_type+2, len(lines)):
-            line = lines[i].split()
-            dim = np.asanyarray([float(line[1]),float(line[3]),float(line[5])], dtype=float)
+        for i, d_cargo_type in enumerate(d_cargo_types):
+            l = d_cargo_type["length"]
+            w = d_cargo_type["width"]
+            h = d_cargo_type["height"]
+            dim = np.asanyarray([l,w,h], dtype=float)
             idav = np.asanyarray([1,1,1], dtype=int)
             cargo_type = CargoType(str(i),
                                    dim,
                                    idav,
-                                   float(line[7]),
-                                   float(line[9]),
-                                   int(line[11]))
+                                   float(d_cargo_type["weight"]),
+                                   float(d_cargo_type["cost"]),
+                                   int(d_cargo_type["num"]))
             cargo_type_list += [cargo_type]
         return Problem(cargo_type_list, container_type_list)
