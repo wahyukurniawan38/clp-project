@@ -28,6 +28,54 @@ def insert_cargo_to_container(solution:Solution,
 
 
 """
+    solution: Solution
+    cargo_idx: (n,)
+    container_idx: int
+    # we should check if these cargos 
+    really are in container idx,
+    in this function, it assumes they are in the
+    container
+"""
+def remove_cargos_from_container(solution: Solution,
+                                 cargo_idx: np.ndarray,
+                                 container_idx: int)-> Solution:
+    total_removed_weight = np.sum(solution.cargo_weights[cargo_idx])
+    total_removed_volume = np.sum(solution.cargo_volumes[cargo_idx])
+    solution.cargo_container_maps[cargo_idx] = -1
+    solution.positions[cargo_idx,:] = -1
+    solution.container_filled_volumes[container_idx] -= total_removed_volume
+    solution.container_filled_weights[container_idx] -= total_removed_weight
+    return solution
+
+def get_unsupported_cargo_idx_from_container(solution: Solution,
+                                            container_idx: int) -> np.ndarray:
+    is_cargo_in_container = solution.cargo_container_maps == container_idx
+    cc_idx = np.nonzero(is_cargo_in_container)[0]
+    if len(cc_idx) == 0:
+        return cc_idx
+    cc_positions = solution.positions[cc_idx, :]
+    cc_dims = solution.cargo_dims[cc_idx, :]
+    cc_rotation_mats = solution.rotation_mats[cc_idx,:,:]
+    cc_real_dims =  (cc_dims[:,np.newaxis,:]*cc_rotation_mats).sum(axis=-1)
+    container_dim = solution.container_dims[container_idx, :]
+
+    cc_bot_pos, cc_bot_dim = get_bottom_surface(cc_positions, cc_real_dims)
+    container_bottom_pos, container_bottom_dim = get_bottom_surface(np.asanyarray([[0,0,0]]), container_dim[np.newaxis,:])
+    cc_top_pos, cc_top_dim = get_top_surface(cc_positions, cc_real_dims)
+    cc_top_pos = np.concatenate([cc_top_pos, container_bottom_pos], axis=0)
+    cc_top_dim = np.concatenate([cc_top_dim, container_bottom_dim])
+    is_on_top = cc_bot_pos[:,np.newaxis,2] == cc_top_pos[np.newaxis,:,2]
+    base_support_area = compute_collision(cc_bot_pos[:,:2], cc_bot_dim[:,:2], cc_top_pos[:,:2], cc_top_dim[:,:2])
+    base_support_area *= is_on_top
+    base_support_area = np.sum(base_support_area, axis=-1)
+    base_area = cc_real_dims[:,0]*cc_real_dims[:,1]
+    supported_base_area_ratio = base_support_area/base_area
+    is_base_supported = supported_base_area_ratio>0.5
+    
+    cc_unsopperted_idx = cc_idx[np.logical_not(is_base_supported)]
+    return cc_unsopperted_idx
+
+"""
     pos1: (n1x3)
     dim1: (n1x3)
     pos2: (n2x3)

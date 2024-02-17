@@ -1,9 +1,9 @@
 {
     "container_types":[
         {
-            "length":12200,
-            "width":2400,
-            "height":2600,
+            "length":5,
+            "width":5,
+            "height":10,
             "cost":2000,
             "max_weight":27000,
             "num":1
@@ -11,19 +11,18 @@
     ],
     "cargo_types":[
         {
-            "length":30,
-            "width":20,
-            "height":30,
-            "weight":10,
-            "volume":3300,
+            "length":2,
+            "width":3,
+            "height":2,
+            "weight":1,
             "cost":5,
             "num":5
         },
         {
-            "length":25,
-            "width":30,
-            "height":40,
-            "weight":30,
+            "length":1,
+            "width":2,
+            "height":4,
+            "weight":1,
             "cost":8,
             "num":10
         }
