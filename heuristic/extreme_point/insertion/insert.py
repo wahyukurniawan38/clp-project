@@ -5,8 +5,8 @@ import numpy as np
 
 from solver.utils import visualize_box
 from heuristic.utils import insert_cargo_to_container
-from heuristic.insertion.extreme_point.utils import project_extreme_point, init_insertion_points, find_ip_and_cargo_idx, argsort_cargo
-from solver.solution import Solution
+from heuristic.extreme_point.insertion.utils import project_extreme_point, init_insertion_points, find_ip_and_cargo_idx, argsort_cargo
+from solver.solution import SolutionBase
 from solver.utils import get_possible_rotation_mats
 
 
@@ -19,11 +19,11 @@ from solver.utils import get_possible_rotation_mats
         the updated solution,
         the list of idxs that cannot/failed to be inserted
 """
-def insert_many_cargo_to_one(solution: Solution,
+def insert_many_cargo_to_one(solution: SolutionBase,
                        cargo_idxs: List[int],
                        container_idx: int,
                        cargo_sort:str="volume-height",
-                       match_method:str="first-fit") -> Tuple[Solution,List[int]]:
+                       match_method:str="first-fit") -> Tuple[SolutionBase,List[int]]:
     # re-generate insertion points from existing cargos in the container
     container_dim = solution.container_dims[container_idx, :]
     container_cargo_idxs = np.argwhere(solution.cargo_container_maps==container_idx).flatten()

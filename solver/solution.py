@@ -1,13 +1,9 @@
 from typing import List
 
-import numpy as np
-
-from cargo.cargo_type import CargoType
-from container.container_type import ContainerType
 from solver.problem import Problem
 from solver.utils import *
 
-class Solution:
+class SolutionBase:
     def __init__(self,
                  problem: Problem,
                  **kwargs):

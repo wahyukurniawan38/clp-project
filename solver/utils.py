@@ -59,18 +59,35 @@ def init_container_filled_weights(container_filled_weights:np.ndarray=None):
         return container_filled_weights.copy()
     return np.empty([0,],dtype=float)
 
-def get_possible_rotation_mats():
-    eye = np.eye(3,3)
-    row_permutations = []
-    for i in range(3):
-        for j in range(3):
-            for k in range(3):
-                if i==j or i==k or k==j:
-                    continue
-                row_permutations += [[i,k,j]]
 
-    possible_rotation_mats = [eye[[r],:] for r in row_permutations]
-    possible_rotation_mats = np.concatenate(possible_rotation_mats, axis=0)
+
+def get_possible_rotation_mats():
+    possible_rotation_mats = [[[1,0,0],
+         [0,1,0],
+         [0,0,1]],
+         
+         [[1,0,0],
+         [0,0,1],
+         [0,1,0]],
+         
+         [[0,1,0],
+         [1,0,0],
+         [0,0,1]],
+         
+         [[0,1,0],
+         [0,0,1],
+         [1,0,0]],
+
+         [[0,0,1],
+         [1,0,0],
+         [0,1,0]],
+         
+         [[0,0,1],
+         [0,1,0],
+         [1,0,0]],
+         ]
+
+    possible_rotation_mats = np.asanyarray(possible_rotation_mats, dtype=float)
     return possible_rotation_mats
 
 def plot_cube(ax, x, y, z, dx, dy, dz, color='red', text_annot:str=""):

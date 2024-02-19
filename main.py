@@ -3,16 +3,16 @@ import pathlib
 import numpy as np
 
 from solver.utils import visualize_box
-from heuristic.insertion.extreme_point.insert import insert_many_cargo_to_one
+from heuristic.extreme_point.insertion.insert import insert_many_cargo_to_one
 from heuristic.utils import add_container, remove_cargos_from_container, get_unsupported_cargo_idx_from_container
 from solver.problem import read_from_file
-from solver.solution import Solution
+from solver.solution import SolutionBase
 
 if __name__ == "__main__":
     file_name = "instance_1.json"
     file_path = pathlib.Path()/"instances"/file_name
     problem = read_from_file(file_path.absolute())
-    solution = Solution(problem)
+    solution = SolutionBase(problem)
     solution = add_container(solution, 0)
     solution = insert_many_cargo_to_one(solution, np.arange(len(solution.cargo_dims)), 0)
     is_inside_container = solution.cargo_container_maps == 0
