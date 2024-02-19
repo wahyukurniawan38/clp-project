@@ -24,4 +24,3 @@ if __name__ == "__main__":
     is_inside_container = solution.cargo_container_maps == 0
     visualize_box(solution.container_dims[0], solution.positions[is_inside_container], solution.cargo_dims[is_inside_container], solution.rotation_mats[is_inside_container])
     
-    print(not_inserted_idx)

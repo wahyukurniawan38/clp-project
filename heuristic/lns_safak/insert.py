@@ -55,25 +55,18 @@ def add_item_to_container(solution: Solution,
         chosen_pos_idx = feasible_pos_idx[0]
         chosen_r = c_rotation_mats[chosen_rotation_idx]
         chosen_p = addition_points[chosen_pos_idx]
-        print(chosen_p)
-        print(ci_real_dims[chosen_rotation_idx])
-        print('-----')
 
         solution = insert_cargo_to_container(solution, chosen_cargo_idx, container_idx, chosen_r, chosen_p)
         is_inserted = True
         
         # update the cargos in the container
-        # print(cc_positions, cc_rotation_mats, cc_real_dims)
         cc_positions = np.concatenate([cc_positions, chosen_p[np.newaxis, :]], axis=0)
         cc_rotation_mats = np.concatenate([cc_rotation_mats, chosen_r[np.newaxis, :, :]], axis=0)
         cc_real_dims =  np.concatenate([cc_real_dims, ci_real_dims[[chosen_rotation_idx],:]], axis=0)
-        # print(cc_positions, cc_rotation_mats, cc_real_dims)
-        # exit()
         # add addition points
         new_addition_points = ci_real_dims[[chosen_rotation_idx],:]*np.eye(3,3) + chosen_p[np.newaxis, :]
         addition_points = np.concatenate([addition_points, new_addition_points], axis=0)
         addition_points = filter_infeasible_addition_points(addition_points, cc_positions, cc_real_dims, container_dim)
-    
     
     is_not_inserted = np.logical_not(is_inserted)
     not_inserted_cargo_idx = cargo_idx[is_not_inserted]

@@ -1,5 +1,7 @@
 from typing import List
 
+from cargo.cargo_type import CargoType
+from container.container_type import ContainerType
 from solver.problem import Problem
 from solver.utils import *
 
