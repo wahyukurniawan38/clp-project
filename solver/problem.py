@@ -42,6 +42,7 @@ def read_from_file(instance_path):
             container_type = ContainerType(str(i),
                                             dim,
                                             d_container_type["max_weight"],
+                                            d_container_type["cost"],
                                             int(d_container_type["num"]))
             container_type_list += [container_type]
         d_cargo_types = d["cargo_types"]

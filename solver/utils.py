@@ -59,6 +59,11 @@ def init_container_filled_weights(container_filled_weights:np.ndarray=None):
         return container_filled_weights.copy()
     return np.empty([0,],dtype=float)
 
+def init_container_costs(container_costs=None):
+    if container_costs is not None:
+        return container_costs
+    container_costs = np.empty([0,])
+    return container_costs
 
 
 def get_possible_rotation_mats():

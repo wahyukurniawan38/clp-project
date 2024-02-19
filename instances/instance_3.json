@@ -6,7 +6,7 @@
             "height":10,
             "cost":2000,
             "max_weight":27000,
-            "num":2
+            "num":1
         },
         {
             "length":3,
@@ -14,7 +14,7 @@
             "height":5,
             "cost":400,
             "max_weight":27000,
-            "num":1
+            "num":2
         }
     ],
     "cargo_types":[

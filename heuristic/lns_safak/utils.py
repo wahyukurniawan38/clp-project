@@ -4,19 +4,19 @@ import numpy as np
 
 from heuristic.utils import is_collide_3d, get_bottom_surface, get_top_surface, compute_collision
 
-def init_cargo_priority(problem:Problem, cargo_priority=None):
-    if cargo_priority is not None:
-        return cargo_priority.copy()
-    cargo_priority = np.arange(len(problem.cargo_dims), dtype=int)
-    return cargo_priority
+def init_cargo_type_priority(problem:Problem, cargo_type_priority=None):
+    if cargo_type_priority is not None:
+        return cargo_type_priority.copy()
+    cargo_type_priority = np.arange(len(problem.cargo_type_list), dtype=int)
+    return cargo_type_priority
 
 
-def init_rotation_priority(problem:Problem, rotation_priority=None):
-    if rotation_priority is not None:
-        return rotation_priority.copy()
-    rotation_priority = np.arange(6)[np.newaxis,:]
-    rotation_priority = np.repeat(rotation_priority, len(problem.cargo_dims), axis=0)
-    return rotation_priority
+def init_cargo_type_rotation_priority(problem:Problem, cargo_type_rotation_priority=None):
+    if cargo_type_rotation_priority is not None:
+        return cargo_type_rotation_priority.copy()
+    cargo_type_rotation_priority = np.arange(6)[np.newaxis,:]
+    cargo_type_rotation_priority = np.repeat(cargo_type_rotation_priority, len(problem.cargo_type_list), axis=0)
+    return cargo_type_rotation_priority
 
 def filter_infeasible_addition_points(addition_points, cc_positions, cc_dims, container_dim):
     dummy_dim = np.asanyarray([[0.00001,0.00001,0.00001]]*len(addition_points))
