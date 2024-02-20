@@ -23,17 +23,20 @@ def add_item_to_container(solution: Solution,
     addition_points = addition_points[sorted_ap_idx]
 
 
-    # order cargo by preset priority
-    c_priority = solution.cargo_priority[cargo_idx]
-    c_priority = np.argsort(c_priority)
-    cargo_idx = cargo_idx[c_priority]
+    # order cargo by the preset cargo type priority
+    c_type = solution.cargo_types[cargo_idx]
+    c_priority = solution.cargo_type_priority[c_type]
+    c_sorted_idx = np.argsort(c_priority)
+    cargo_idx = cargo_idx[c_sorted_idx]
     c_dims = solution.cargo_dims[cargo_idx, :]
-    c_rotation_priority = solution.rotation_priority[cargo_idx]
+    c_type = solution.cargo_types[cargo_idx]
+    c_rotation_sorted_idx = solution.cargo_type_rotation_sorted_idx[c_type]
+    
     num_cargos_to_insert = len(cargo_idx)
     possible_rotation_mats = get_possible_rotation_mats()
     is_inserted = np.zeros([num_cargos_to_insert,], dtype=bool)
     for i in range(num_cargos_to_insert):
-        c_rotation_mats = possible_rotation_mats[c_rotation_priority[i],:, :]
+        c_rotation_mats = possible_rotation_mats[c_rotation_sorted_idx[i],:, :]
         ci_dims = np.repeat(c_dims[[i],:], 6, axis=0)
         ci_real_dims = (ci_dims[:,np.newaxis,:]*c_rotation_mats).sum(axis=-1)
         ci_weights = np.repeat(solution.cargo_weights[i], 6)

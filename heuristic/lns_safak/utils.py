@@ -11,12 +11,12 @@ def init_cargo_type_priority(problem:Problem, cargo_type_priority=None):
     return cargo_type_priority
 
 
-def init_cargo_type_rotation_priority(problem:Problem, cargo_type_rotation_priority=None):
-    if cargo_type_rotation_priority is not None:
-        return cargo_type_rotation_priority.copy()
-    cargo_type_rotation_priority = np.arange(6)[np.newaxis,:]
-    cargo_type_rotation_priority = np.repeat(cargo_type_rotation_priority, len(problem.cargo_type_list), axis=0)
-    return cargo_type_rotation_priority
+def init_cargo_type_rotation_sorted_idx(problem:Problem, cargo_type_rotation_sorted_idx=None):
+    if cargo_type_rotation_sorted_idx is not None:
+        return cargo_type_rotation_sorted_idx.copy()
+    cargo_type_rotation_sorted_idx = np.arange(6)[np.newaxis,:]
+    cargo_type_rotation_sorted_idx = np.repeat(cargo_type_rotation_sorted_idx, len(problem.cargo_type_list), axis=0)
+    return cargo_type_rotation_sorted_idx
 
 def filter_infeasible_addition_points(addition_points, cc_positions, cc_dims, container_dim):
     dummy_dim = np.asanyarray([[0.00001,0.00001,0.00001]]*len(addition_points))
