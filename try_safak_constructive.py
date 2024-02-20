@@ -23,5 +23,5 @@ if __name__ == "__main__":
     cargo_idx = [i for i in range(len(solution.cargo_dims)) if i not in cc_idx]
     cargo_idx = list(range(len(solution.cargo_dims)))
     solution = insert_many_cargo_to_one(solution, np.asanyarray(cc_idx), 0)
-    
     solution = constructive_heuristic(solution)
+    print(solution.is_feasible)

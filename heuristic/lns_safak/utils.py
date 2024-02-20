@@ -3,6 +3,7 @@ from solver.problem import Problem
 import numpy as np
 
 from heuristic.utils import is_collide_3d, get_bottom_surface, get_top_surface, compute_collision
+from solver.utils import get_possible_rotation_mats
 
 def init_cargo_type_priority(problem:Problem, cargo_type_priority=None):
     if cargo_type_priority is not None:
@@ -17,6 +18,35 @@ def init_cargo_type_rotation_sorted_idx(problem:Problem, cargo_type_rotation_sor
     cargo_type_rotation_sorted_idx = np.arange(6)[np.newaxis,:]
     cargo_type_rotation_sorted_idx = np.repeat(cargo_type_rotation_sorted_idx, len(problem.cargo_type_list), axis=0)
     return cargo_type_rotation_sorted_idx
+
+
+"""
+    I assume sorting the rotation of each
+    cargo type for each container type
+    will be done very very often,
+    that is why, let's pre-compute
+    them, and fetch them when we need them.
+
+
+    out:
+        default_rotation: (n_cargo_type, n_container_type, 6)
+"""
+def init_default_cargo_type_rotation_sorted_idx(problem: Problem, default_cargo_type_rotation_sorted_idx=None):
+    if default_cargo_type_rotation_sorted_idx is not None:
+        return default_cargo_type_rotation_sorted_idx
+    cargo_type_dims = [problem.cargo_type_list[i].dim[np.newaxis,:] for i in range(len(problem.cargo_type_list))]
+    cargo_type_dims = np.concatenate(cargo_type_dims, axis=0)
+    container_type_dims = [problem.container_type_list[i].dim[np.newaxis,:] for i in range(len(problem.container_type_list))]
+    container_type_dims = np.concatenate(container_type_dims, axis=0)
+    possible_rotation_mats = get_possible_rotation_mats()
+    c_type_real_dims = (cargo_type_dims[:,np.newaxis,np.newaxis,:]*possible_rotation_mats[np.newaxis,:,:,:]).sum(axis=-1)
+    c_type_real_wall_dims = c_type_real_dims[:,:,[1,2]]
+    ct_type_wall_dims = container_type_dims[:,[1,2]]
+    num_wall_span  = np.floor(ct_type_wall_dims[np.newaxis,np.newaxis,:,:]/c_type_real_wall_dims[:,:,np.newaxis,:])
+    wall_span_area = np.prod(num_wall_span*c_type_real_wall_dims[:,:,np.newaxis,:],axis=-1)
+    wall_span_area = np.transpose(wall_span_area, axes=(0,2,1))
+    default_c_rotation_sorted_idx = np.argsort(wall_span_area,axis=-1)
+    return default_c_rotation_sorted_idx
 
 def filter_infeasible_addition_points(addition_points, cc_positions, cc_dims, container_dim):
     dummy_dim = np.asanyarray([[0.00001,0.00001,0.00001]]*len(addition_points))

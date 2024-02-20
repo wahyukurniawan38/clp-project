@@ -31,7 +31,6 @@ def add_item_to_container(solution: Solution,
     c_dims = solution.cargo_dims[cargo_idx, :]
     c_type = solution.cargo_types[cargo_idx]
     c_rotation_sorted_idx = solution.cargo_type_rotation_sorted_idx[c_type]
-    
     num_cargos_to_insert = len(cargo_idx)
     possible_rotation_mats = get_possible_rotation_mats()
     is_inserted = np.zeros([num_cargos_to_insert,], dtype=bool)

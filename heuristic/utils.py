@@ -15,7 +15,7 @@ def add_container(solution:SolutionBase, container_type_idx):
     solution.container_filled_weights = np.append(solution.container_filled_weights, [0])
     solution.nums_container_used[container_type_idx] += 1
     solution.container_costs = np.append(solution.container_costs, [solution.problem.container_type_list[container_type_idx].cost])
-    
+    solution.container_types = np.append(solution.container_types, [container_type_idx])
     return solution
 
 

@@ -1,7 +1,7 @@
 
 import numpy as np
 
-from heuristic.lns_safak.utils import init_cargo_type_priority, init_cargo_type_rotation_sorted_idx
+from heuristic.lns_safak.utils import init_cargo_type_priority, init_cargo_type_rotation_sorted_idx, init_default_cargo_type_rotation_sorted_idx
 from solver.problem import Problem
 from solver.solution import SolutionBase
 
@@ -12,6 +12,8 @@ class Solution(SolutionBase):
         
         self.cargo_type_priority = init_cargo_type_priority(problem, kwargs.get("cargo_type_priority"))
         self.cargo_type_rotation_sorted_idx = init_cargo_type_rotation_sorted_idx(problem, kwargs.get("cargo_type_rotation_sorted_idx"))
+        self.default_cargo_type_rotation_sorted_idx = init_default_cargo_type_rotation_sorted_idx(problem, kwargs.get("default_cargo_type_rotation_sorted_idx"))
+        
         self.is_feasible = kwargs.get("is_feasible")
         if self.is_feasible is None:
             self.is_feasible = False

@@ -2,7 +2,7 @@ import numpy as np
 
 from solver.utils import get_possible_rotation_mats
 from heuristic.lns_safak.solution import Solution
-
+from heuristic.lns_safak.insert import add_item_to_container
 
 
 
@@ -13,38 +13,64 @@ from heuristic.lns_safak.solution import Solution
     into the container
     Ordering cargo is not in this method
     Ordering their rotation is in this method tho
-"""
-def constructive_heuristic(solution:Solution):
-    is_cargo_unpacked = solution.cargo_container_maps == -1
-    unpacked_cargo_idx = np.nonzero(is_cargo_unpacked)[0]
-    unpacked_cargo_priority = solution.cargo_priority[is_cargo_unpacked]
-    priority_sorted_idx = np.argsort(unpacked_cargo_priority)
-    unpacked_cargo_idx = unpacked_cargo_idx[priority_sorted_idx]
-    # sort container first
+
+    1. we begin by sorting the containers (instance, not type)
+    2. for every container
+        3. for every cargo type
+            4. if all of this type is packed: continue
+            5. get unpacked index
+            6. reset the rotation matrix ordering for this cargo type
+            7. add_item_to_container, all the unpacked items of this type
+    8. check if there are no more unpacked items,
+    then set is_feasible=True
+"""     
+def constructive_heuristic(solution:Solution, insertion_mode="layer-building"):
     container_filled_volumes = solution.container_filled_volumes
     container_costs = solution.container_costs
     sorted_container_idx = np.lexsort((-container_costs, -container_filled_volumes))
-    for container_idx in sorted_container_idx:
-        container_dim = solution.container_dims[container_idx]
-        num_unpacked_cargo = len(unpacked_cargo_idx)
-        c_dims = solution.cargo_dims[unpacked_cargo_idx]
+    
+    c_type_sorted = np.argsort(solution.cargo_type_priority)
+    for ct_idx in sorted_container_idx:
+        ct_type = solution.cargo_types[ct_idx]
+        for c_type in c_type_sorted:
+            is_this_type = solution.cargo_types == c_type
+            is_unpacked = solution.cargo_container_maps == -1
+            unpacked_cargo_idx = np.nonzero(np.logical_and(is_this_type, is_unpacked))[0]
+            if len(unpacked_cargo_idx)==0:
+                continue
+            default_rotation_mat_sorted_idx = solution.default_cargo_type_rotation_sorted_idx[c_type, ct_type, :]
+            solution.cargo_type_rotation_sorted_idx[c_type] = default_rotation_mat_sorted_idx
+            solution, failed_to_insert_cargo_idx = add_item_to_container(solution, unpacked_cargo_idx, ct_idx, insertion_mode)
+    is_packed = solution.cargo_container_maps > -1
+    solution.is_feasible = np.all(is_packed)
+    return solution
+
+
+
+
+# is_cargo_unpacked = solution.cargo_container_maps == -1
+#     unpacked_cargo_idx = np.nonzero(is_cargo_unpacked)[0]
+#     unpacked_cargo_type = solution.cargo_types[unpacked_cargo_idx]
+#     unpacked_cargo_priority = solution.cargo_type_priority[unpacked_cargo_type]
+#     priority_sorted_idx = np.argsort(unpacked_cargo_priority)
+#     unpacked_cargo_idx = unpacked_cargo_idx[priority_sorted_idx]
+#     # sort container first
+#     container_filled_volumes = solution.container_filled_volumes
+#     container_costs = solution.container_costs
+#     sorted_container_idx = np.lexsort((-container_costs, -container_filled_volumes))
+#     possible_rotation_mats = get_possible_rotation_mats()
+#     for container_idx in sorted_container_idx:
+#         # get the default rotation matrix order
+#         # for this container
+#         container_dim = solution.container_dims[container_idx]
+#         ct_type = solution.container_types[container_idx]
+#         c_type = solution.cargo_types[unpacked_cargo_idx]
+#         c_rotation_sorted_idx = solution.default_cargo_type_rotation_sorted_idx[c_type,ct_type,:]
+#         c_rotation_mats = possible_rotation_mats[c_rotation_sorted_idx]
         
-        # sort their rotation first
-        c_dims_ = np.repeat(c_dims, 6, axis=0)
-        possible_rotation_mats = get_possible_rotation_mats()
-        c_rotation_mats = np.tile(possible_rotation_mats, [num_unpacked_cargo,1,1])
-        c_real_dims_ = (c_dims_[:,np.newaxis,:]*c_rotation_mats).sum(axis=-1)
-        c_real_wall_dims_ = c_real_dims_[:, [0,1]]
-        container_wall_dim = container_dim[[0,1]]
-        num_wall_span = np.floor(container_wall_dim[np.newaxis,:]/ c_real_wall_dims_)
-        wall_span_area = np.prod(np.floor(wall_span_area), axis=-1)
-        print(c_real_wall_dims_.shape)
-        print(container_wall_dim.shape)
-        print(wall_span_area)
-        exit()
-        # update unpacked cargo idx
+#         # try inserting one by one
+#         for c_idx in unpacked_cargo_idx:
 
-
-
-
-    exit()
+#         # update unpacked
+#         # if inserted, update the rotation order matrix
+#         # for this cargo type

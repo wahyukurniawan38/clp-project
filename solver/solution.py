@@ -30,3 +30,4 @@ class SolutionBase:
         self.container_max_weights = init_container_max_weights(kwargs.get("container_max_weights"))
         self.container_filled_weights = init_container_filled_weights(kwargs.get("contained_filled_weights"))
         self.container_costs = init_container_costs(kwargs.get("container_costs"))      
+        self.container_types = init_container_types(kwargs.get("container_types"))
