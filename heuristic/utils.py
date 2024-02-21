@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Tuple
 
 import numpy as np
 
@@ -9,8 +9,10 @@ def add_container(solution:SolutionBase, container_type_idx):
     container_type_list = solution.problem.container_type_list
     container_type = container_type_list[container_type_idx]
     solution.container_dims = np.append(solution.container_dims, container_type.dim[np.newaxis,:], axis=0)
-    solution.container_max_volumes = np.append(solution.container_max_weights, [container_type.max_weight])
-    solution.container_max_weights = np.append(solution.container_max_volumes, [container_type.max_volume]) 
+    solution.container_max_weights = np.append(solution.container_max_weights, [container_type.max_weight])
+    # print(solution.container_filled_weights)
+    solution.container_max_volumes = np.append(solution.container_max_volumes, [container_type.max_volume]) 
+    # print(solution.container_filled_weights)
     solution.container_filled_volumes = np.append(solution.container_filled_volumes, [0])
     solution.container_filled_weights = np.append(solution.container_filled_weights, [0])
     solution.nums_container_used[container_type_idx] += 1
@@ -58,6 +60,30 @@ def remove_cargos_from_container(solution: SolutionBase,
     solution.container_filled_volumes[container_idx] -= total_removed_volume
     solution.container_filled_weights[container_idx] -= total_removed_weight
     return solution
+
+"""
+    solution: Solution
+    container_idx: int
+"""
+def empty_container(solution: SolutionBase,
+                    container_idx: int)-> SolutionBase:
+    is_cargo_in_container = solution.cargo_container_maps == container_idx
+    cargo_in_container_idx = np.nonzero(is_cargo_in_container)[0]
+    if len(cargo_in_container_idx) > 0:
+        solution = remove_cargos_from_container(solution, cargo_in_container_idx, container_idx)
+    return solution
+
+def remove_infeasible_cargo(solution: SolutionBase,
+                            container_idx: int) -> Tuple[SolutionBase, np.ndarray]:
+    infeasible_cargo_idx = []
+    cc_unsopperted_idx = get_unsupported_cargo_idx_from_container(solution, container_idx)
+    while len(cc_unsopperted_idx) > 0:
+        infeasible_cargo_idx += [cc_unsopperted_idx]
+        solution = remove_cargos_from_container(solution, cc_unsopperted_idx, container_idx)
+        cc_unsopperted_idx = get_unsupported_cargo_idx_from_container(solution, container_idx)
+    if len(infeasible_cargo_idx)>0:
+        infeasible_cargo_idx = np.concatenate(infeasible_cargo_idx)
+    return solution, infeasible_cargo_idx
 
 def get_unsupported_cargo_idx_from_container(solution: SolutionBase,
                                             container_idx: int) -> np.ndarray:

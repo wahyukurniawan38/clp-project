@@ -4,7 +4,7 @@
             "length":5,
             "width":5,
             "height":10,
-            "cost":2000,
+            "cost":20,
             "max_weight":27000,
             "num":1
         },
@@ -12,7 +12,7 @@
             "length":3,
             "width":3,
             "height":5,
-            "cost":400,
+            "cost":4,
             "max_weight":27000,
             "num":2
         }
@@ -24,7 +24,7 @@
             "height":2,
             "weight":1,
             "cost":5,
-            "num":5
+            "num":10
         },
         {
             "length":1,
