@@ -29,6 +29,14 @@ class Problem:
         self.cargo_costs =   np.asanyarray([cargo_type.cost for cargo_type in cargo_type_list for _ in range(cargo_type.num_cargo)])
         self.cargo_volumes = np.asanyarray([cargo_type.volume for cargo_type in cargo_type_list for _ in range(cargo_type.num_cargo)])
 
+        # this one per types
+        # useful for block building
+        self.cargo_type_dims = np.asanyarray([cargo_type.dim for cargo_type in cargo_type_list])
+        self.cargo_type_weights = np.asanyarray([cargo_type.weight for cargo_type in cargo_type_list])
+        self.cargo_type_volumes = np.asanyarray([cargo_type.volume for cargo_type in cargo_type_list ])
+        self.cargo_type_costs = np.asanyarray([cargo_type.cost for cargo_type in cargo_type_list])
+
+
 def read_from_file(instance_path):
     with open(instance_path, "r") as instance_file:
         d = json.load(instance_file)

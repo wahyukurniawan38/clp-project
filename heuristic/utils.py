@@ -226,7 +226,6 @@ def get_feasibility_mask(container_dim:np.ndarray,
     # the weight capacity can fit the cargo
     is_weight_cap_enough = c_weights + cc_filled_weight <= cc_max_weight
     is_weight_cap_enough = np.repeat(is_weight_cap_enough, n_ip, axis=0)
-
     # try all possible insertion positions
     # for all cargo
     # and check if it collides with cargos already in the container

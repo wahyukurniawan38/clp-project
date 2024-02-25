@@ -84,7 +84,7 @@ def get_addition_points(cc_positions, cc_dims, container_dim)->np.ndarray:
         return np.zeros([1,3], dtype=float)
     addition_points = cc_dims[:, np.newaxis,:]*np.eye(3,3)[np.newaxis,:,:] + cc_positions[:, np.newaxis, :]
     addition_points = addition_points.reshape(len(cc_positions)*3,3)
-    
+        
     addition_points = filter_infeasible_addition_points(addition_points, cc_positions, cc_dims, container_dim)
     return addition_points
 

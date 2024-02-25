@@ -38,6 +38,7 @@ def add_item_to_container(solution: Solution,
         c_rotation_mats = possible_rotation_mats[c_rotation_sorted_idx[i],:, :]
         ci_dims = np.repeat(c_dims[[i],:], 6, axis=0)
         ci_real_dims = (ci_dims[:,np.newaxis,:]*c_rotation_mats).sum(axis=-1)
+        
         ci_weights = np.repeat(solution.cargo_weights[i], 6)
         ci_volumes = np.repeat(solution.cargo_volumes[i], 6)
         feasibility_mask = get_feasibility_mask(container_dim,
