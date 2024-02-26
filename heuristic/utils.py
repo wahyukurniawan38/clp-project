@@ -1,5 +1,6 @@
 from typing import Union, Tuple
 
+import numba as nb
 import numpy as np
 
 from solver.problem import Problem
@@ -122,15 +123,26 @@ def get_unsupported_cargo_idx_from_container(solution: SolutionBase,
     output: boolean matrix is collision happens between each pair
     out: (n1xn2)
 """
+@nb.njit(nb.boolean[:,:](nb.float64[:,:],nb.float64[:,:],nb.float64[:,:],nb.float64[:,:]))
 def is_collide_3d(pos1: np.ndarray, 
                   dim1: np.ndarray,
                   pos2: np.ndarray,
                   dim2: np.ndarray) -> np.ndarray:
     cp1 = pos1+dim1
     cp2 = pos2+dim2
-    is_not_collide1 = np.any(pos1[:,np.newaxis,:] >= cp2[np.newaxis,:,:], axis=2)
-    is_not_collide2 = np.any(cp1[:,np.newaxis,:] <= pos2[np.newaxis,:,:], axis=2)
-    is_not_collide = np.logical_or(is_not_collide1, is_not_collide2)
+    n, _ = pos1.shape
+    m, _ = pos2.shape
+    # print(n,m)
+    is_not_collide = np.zeros((n,m))
+    for i in range(n):
+        for j in range(m):
+            if np.any(pos1[i,:]>=cp2[j,:]) or np.any(cp1[i,:]<=pos2[j,:]):
+                is_not_collide[i,j] = True
+
+    # is_not_collide1 = np.sum(pos1[:,np.newaxis,:] >= cp2[np.newaxis,:,:], axis=2) > 0
+    # is_not_collide2 = np.sum(cp1[:,np.newaxis,:] <= pos2[np.newaxis,:,:], axis=2) > 0
+    # is_not_collide = np.logical_or(is_not_collide1, is_not_collide2)
+    # assert np.allclose(is_not_collide, is_not_collide_)
     is_collide = np.logical_not(is_not_collide)
     return is_collide
 
@@ -236,30 +248,12 @@ def get_feasibility_mask(container_dim:np.ndarray,
     is_collide_all = is_collide_3d(insertion_points_, c_dims_, cc_positions, cc_dims)
     is_collide_with_any = np.any(is_collide_all, axis=1)
     is_not_collide_with_any = np.logical_not(is_collide_with_any)
-    # print(is_not_collide_with_any)
 
-
-    # check if the, say, i-th cargo is inserted at the j-th position
-    # enough base support is provided 
-    c_bottom_pos_, c_bottom_dims_ = get_bottom_surface(insertion_points_, c_dims_)
-    container_bottom_pos, container_bottom_dim = get_bottom_surface(np.asanyarray([[0,0,0]]), container_dim[np.newaxis,:])
-    cc_top_pos, cc_top_dim = get_top_surface(cc_positions, cc_dims)
-    cc_top_pos = np.concatenate([cc_top_pos, container_bottom_pos], axis=0)
-    cc_top_dim = np.concatenate([cc_top_dim, container_bottom_dim])
-    is_on_top = c_bottom_pos_[:,np.newaxis,2] == cc_top_pos[np.newaxis,:,2]
-    base_support_area = compute_collision(c_bottom_pos_[:,:2], c_bottom_dims_[:,:2], cc_top_pos[:,:2], cc_top_dim[:,:2])
-    base_support_area *= is_on_top
-    base_support_area = np.sum(base_support_area, axis=-1)
-    base_area = c_dims_[:,0]*c_dims_[:,1]
-    supported_base_area_ratio = base_support_area/base_area
-    is_base_supported = supported_base_area_ratio>0.5
-    
     # check if overflow the container
     is_not_overflow = (c_dims_ + insertion_points_) <= container_dim[np.newaxis,:]
     is_not_overflow = np.all(is_not_overflow, axis=-1)
     # combine all
-    feasibility_mask = np.logical_and(is_base_supported, is_not_collide_with_any)
-    feasibility_mask = np.logical_and(feasibility_mask, is_weight_cap_enough)
+    feasibility_mask = np.logical_and(is_not_collide_with_any, is_weight_cap_enough)
     feasibility_mask = np.logical_and(feasibility_mask, is_not_overflow)
     feasibility_mask = feasibility_mask.reshape([n_cargo, n_ip])
     return feasibility_mask

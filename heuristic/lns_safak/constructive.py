@@ -38,6 +38,19 @@ def constructive_heuristic(solution:Solution, insertion_mode="layer-building"):
             unpacked_cargo_idx = np.nonzero(np.logical_and(is_this_type, is_unpacked))[0]
             if len(unpacked_cargo_idx)==0:
                 continue
+            # test for weight and volume capacity first
+            volume = solution.cargo_volumes[unpacked_cargo_idx][0]
+            ct_filled_volume = solution.container_filled_volumes[ct_idx]
+            ct_max_volume = solution.container_max_volumes[ct_idx]
+            if volume + ct_filled_volume > ct_max_volume:
+                continue
+
+            weight = solution.cargo_weights[unpacked_cargo_idx][0]
+            ct_filled_weight = solution.container_filled_weights[ct_idx]
+            ct_max_weight = solution.container_max_weights[ct_idx]
+            if weight + ct_filled_weight > ct_max_weight:
+                continue
+            
             default_rotation_mat_sorted_idx = solution.default_cargo_type_rotation_sorted_idx[c_type, ct_type, :]
             solution.cargo_type_rotation_sorted_idx[c_type] = default_rotation_mat_sorted_idx
             solution, failed_to_insert_cargo_idx = add_item_to_container(solution, unpacked_cargo_idx, ct_idx, insertion_mode)

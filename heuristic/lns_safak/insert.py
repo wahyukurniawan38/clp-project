@@ -39,18 +39,25 @@ def add_item_to_container(solution: Solution,
         ci_dims = np.repeat(c_dims[[i],:], 6, axis=0)
         ci_real_dims = (ci_dims[:,np.newaxis,:]*c_rotation_mats).sum(axis=-1)
         
-        ci_weights = np.repeat(solution.cargo_weights[i], 6)
-        ci_volumes = np.repeat(solution.cargo_volumes[i], 6)
-        feasibility_mask = get_feasibility_mask(container_dim,
+        # check rotation one by one,
+        # hoping in average it picks the early
+        # rotation
+        ci_weights = solution.cargo_weights[i]
+        ci_volumes = solution.cargo_volumes[i]
+        for ri in range(6):
+            feasibility_mask = get_feasibility_mask(container_dim,
                                                 cc_real_dims,
                                                 cc_positions,
                                                 solution.container_filled_weights[container_idx],
                                                 solution.container_max_weights[container_idx],
                                                 addition_points,
-                                                ci_real_dims,
+                                                ci_real_dims[[ri],:],
                                                 ci_weights,
                                                 ci_volumes)
-        feasible_rotation_idx, feasible_pos_idx = np.nonzero(feasibility_mask)
+            feasible_rotation_idx, feasible_pos_idx = np.nonzero(feasibility_mask)
+            if len(feasible_rotation_idx)>0:
+                feasible_rotation_idx[0] = ri
+                break
         if len(feasible_rotation_idx)==0:
             continue
         chosen_cargo_idx = cargo_idx[i]
@@ -58,7 +65,6 @@ def add_item_to_container(solution: Solution,
         chosen_pos_idx = feasible_pos_idx[0]
         chosen_r = c_rotation_mats[chosen_rotation_idx]
         chosen_p = addition_points[chosen_pos_idx]
-
         solution = insert_cargo_to_container(solution, chosen_cargo_idx, container_idx, chosen_r, chosen_p)
         is_inserted = True
         
@@ -70,7 +76,9 @@ def add_item_to_container(solution: Solution,
         new_addition_points = ci_real_dims[[chosen_rotation_idx],:]*np.eye(3,3) + chosen_p[np.newaxis, :]
         addition_points = np.concatenate([addition_points, new_addition_points], axis=0)
         addition_points = filter_infeasible_addition_points(addition_points, cc_positions, cc_real_dims, container_dim)
-    
+        sorted_ap_idx = argsort_addition_points(addition_points, mode)
+        addition_points = addition_points[sorted_ap_idx]
+
     is_not_inserted = np.logical_not(is_inserted)
     not_inserted_cargo_idx = cargo_idx[is_not_inserted]
     return solution, not_inserted_cargo_idx

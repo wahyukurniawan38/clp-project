@@ -13,7 +13,7 @@ from solver.utils import visualize_box
 
 
 if __name__ == "__main__":
-    file_name = "instance_3.json"
+    file_name = "n40_0_n20_2_nc_40_u_0.9.json"
     file_path = pathlib.Path()/"instances"/file_name
     problem = read_from_file(file_path.absolute())
     solution = Solution(problem)

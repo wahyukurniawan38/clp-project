@@ -21,9 +21,9 @@ def read_available_item_types():
 
 if __name__ == "__main__":
     num_40_feet_container = 0
-    num_20_feet_container = 1
-    num_item_types = 5
-    target_utility = 0.2
+    num_20_feet_container = 2
+    num_item_types = 40
+    target_utility = 0.9
     instance_name = "n40_"+str(num_40_feet_container)+"_n20_"+str(num_20_feet_container)+"_nc_"+str(num_item_types)+"_u_"+str(target_utility)+".json"
     target_volume = target_utility*(num_40_feet_container*1220*240*260 + num_20_feet_container*600*240*260)
     target_weight = target_utility*(num_40_feet_container*27000+ num_20_feet_container*13000)
