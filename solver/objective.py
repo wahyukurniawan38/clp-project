@@ -27,15 +27,15 @@ def compute_objective(solution: SolutionBase)-> Tuple[float,float]:
     min_util = np.min(container_utilization)
     load_dist_obj = max_util-min_util
 
-    volume_packed = np.sum(solution.cargo_volumes[is_cargo_packed])
+    volume_packed = np.sum(solution.cargo_volumes[is_cargo_packed])/np.sum(solution.cargo_volumes)
 
     return [volume_packed, cost_obj, load_dist_obj]
 
 def is_better(solution_a:SolutionBase, solution_b: SolutionBase):
     volume_packed_a, cost_obj_a, load_dist_obj_a = compute_objective(solution_a)
     volume_packed_b, cost_obj_b, load_dist_obj_b = compute_objective(solution_b)
-    scalarized_obj_a = cost_obj_a+load_dist_obj_a
-    scalarized_obj_b = cost_obj_b+load_dist_obj_b
+    scalarized_obj_a = cost_obj_a-load_dist_obj_a
+    scalarized_obj_b = cost_obj_b-load_dist_obj_b
     if volume_packed_a > volume_packed_b:
         return True
     if volume_packed_a == volume_packed_b:

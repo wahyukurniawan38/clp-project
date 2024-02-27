@@ -18,7 +18,7 @@ def add_container(solution:SolutionBase, container_type_idx):
     solution.container_filled_weights = np.append(solution.container_filled_weights, [0])
     solution.nums_container_used[container_type_idx] += 1
     solution.container_costs = np.append(solution.container_costs, [solution.problem.container_type_list[container_type_idx].cost])
-    solution.container_cogs = np.append(solution.container_cogs, [0])
+    solution.container_cogs = np.append(solution.container_cogs, [[0,0]],axis=0)
     solution.container_cog_tolerances = np.append(solution.container_cog_tolerances, [solution.problem.container_type_list[container_type_idx].cog_tolerance])
     solution.container_types = np.append(solution.container_types, [container_type_idx])
     return solution
@@ -45,10 +45,10 @@ def insert_cargo_to_container(solution:SolutionBase,
     old_weight = solution.container_filled_weights[container_idx]
     
     # recompute new center of gravity
-    if solution.container_cogs[container_idx] <=0:
+    if np.any(solution.container_cogs[container_idx] <=0):
         solution.container_cogs[container_idx] = position[:2]+cargo_real_dim[:2]/2
     else:
-        old_cog = solution.container_cogs
+        old_cog = solution.container_cogs[container_idx]
         new_cog = (old_cog*old_weight + cargo_weight*(position[:2]+cargo_real_dim[:2]/2))/(old_weight+cargo_weight)
         solution.container_cogs[container_idx] = new_cog
 
@@ -69,18 +69,20 @@ def insert_cargo_to_container(solution:SolutionBase,
 def remove_cargos_from_container(solution: SolutionBase,
                                  cargo_idx: np.ndarray,
                                  container_idx: int)-> SolutionBase:
+    if len(cargo_idx)==0:
+        return solution
     total_removed_weight = np.sum(solution.cargo_weights[cargo_idx])
     total_removed_volume = np.sum(solution.cargo_volumes[cargo_idx])
     # re-arranging the center of gravity after removal
     old_cog = solution.container_cogs[container_idx]
     old_weight = solution.container_filled_weights[container_idx]
 
-    c_real_dims = (solution.cargo_dims[cargo_idx][np.newaxis,:]*solution.rotation_mats[cargo_idx,:,:]).sum(axis=-1)
-    c_center = solution.positions[cargo_idx,:2] + c_real_dims[:,:2]/2
-    c_weight = total_removed_weight
+    c_real_dims = (solution.cargo_dims[cargo_idx,np.newaxis,:]*solution.rotation_mats[cargo_idx,:,:]).sum(axis=-1)
+    c_centers = solution.positions[cargo_idx,:2] + c_real_dims[:,:2]/2
+    c_weights = solution.cargo_weights[cargo_idx]
 
-    solution.container_cogs[container_idx] = (old_cog*old_weight - c_center*c_weight)/(old_weight-c_weight+1)
-
+    solution.container_cogs[container_idx] = (old_cog*old_weight - np.sum(c_centers*c_weights[:, np.newaxis], axis=0))/max(old_weight-total_removed_weight,1)
+    np.clip(solution.container_cogs, a_min=0, a_max=None)
     solution.cargo_container_maps[cargo_idx] = -1
     solution.positions[cargo_idx,:] = -1
     solution.container_filled_volumes[container_idx] -= total_removed_volume
@@ -148,7 +150,7 @@ def get_unsupported_cargo_idx_from_container(solution: SolutionBase,
     output: boolean matrix is collision happens between each pair
     out: (n1xn2)
 """
-@nb.njit(nb.boolean[:,:](nb.float64[:,:],nb.float64[:,:],nb.float64[:,:],nb.float64[:,:]))
+@nb.njit(nb.float64[:,:](nb.float64[:,:],nb.float64[:,:],nb.float64[:,:],nb.float64[:,:]), parallel=True)
 def is_collide_3d(pos1: np.ndarray, 
                   dim1: np.ndarray,
                   pos2: np.ndarray,
@@ -159,11 +161,10 @@ def is_collide_3d(pos1: np.ndarray,
     m, _ = pos2.shape
     # print(n,m)
     is_collide = np.ones((n,m))
-    for i in range(n):
+    for i in nb.prange(n):
         for j in range(m):
             if np.any(pos1[i,:]>=cp2[j,:]) or np.any(cp1[i,:]<=pos2[j,:]):
-                is_collide[i,j] = False
-
+                is_collide[i,j] = 0
     # is_not_collide1 = np.sum(pos1[:,np.newaxis,:] >= cp2[np.newaxis,:,:], axis=2) > 0
     # is_not_collide2 = np.sum(cp1[:,np.newaxis,:] <= pos2[np.newaxis,:,:], axis=2) > 0
     # is_not_collide = np.logical_or(is_not_collide1, is_not_collide2)
@@ -249,6 +250,7 @@ def get_front_surface(pos, dim):
     front_dim = dim - dim * np.asanyarray([[1,0,0]])
     return front_pos, front_dim
 
+@profile
 def get_feasibility_mask(container_dim:np.ndarray,
                           cc_dims:np.ndarray, 
                           cc_positions:np.ndarray, 

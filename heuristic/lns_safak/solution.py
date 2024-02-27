@@ -34,5 +34,7 @@ def create_copy(solution: Solution)->Solution:
                             cargo_type_priority=solution.cargo_type_priority,
                             cargo_type_rotation_sorted_idx=solution.cargo_type_rotation_sorted_idx,
                             default_cargo_type_rotation_sorted_idx=solution.default_cargo_type_rotation_sorted_idx,
+                            container_cogs=solution.container_cogs,
+                            container_cog_tolerances=solution.container_cog_tolerances,
                             is_feasible=solution.is_feasible)
     return new_solution

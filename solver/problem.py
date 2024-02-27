@@ -47,10 +47,12 @@ def read_from_file(instance_path):
             w = d_container_type["width"]
             h = d_container_type["height"]
             dim = np.asanyarray([l,w,h], dtype=float)
+            cog_tolerance = np.asanyarray([d_container_type["psi_x"], d_container_type["psi_y"]])
             container_type = ContainerType(str(i),
                                             dim,
                                             d_container_type["max_weight"],
                                             d_container_type["cost"],
+                                            cog_tolerance,
                                             int(d_container_type["num"]))
             container_type_list += [container_type]
         d_cargo_types = d["cargo_types"]

@@ -5,6 +5,8 @@
             "width":5,
             "height":10,
             "cost":20,
+            "psi_x":1,
+            "psi_y":1,
             "max_weight":27000,
             "num":1
         },
@@ -13,6 +15,8 @@
             "width":3,
             "height":5,
             "cost":4,
+            "psi_x":1,
+            "psi_y":1,
             "max_weight":27000,
             "num":2
         }

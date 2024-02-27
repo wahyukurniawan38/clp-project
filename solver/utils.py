@@ -72,7 +72,7 @@ def init_container_types(container_types=None):
 def init_container_cogs(container_cogs:np.ndarray=None):
     if container_cogs is not None:
         return container_cogs.copy()
-    return  np.empty([0,], dtype=float)
+    return  np.empty([0,2], dtype=float)
 
 def init_container_cog_tolerances(container_cog_tolerances:np.ndarray=None):
     if container_cog_tolerances is not None:

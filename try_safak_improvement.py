@@ -13,18 +13,20 @@ from solver.utils import visualize_box
 
 
 if __name__ == "__main__":
-    file_name = "n40_0_n20_2_nc_40_u_0.9.json"
+    file_name = "n40_2_n20_0_nc_40_u_0.4.json"
     file_path = pathlib.Path()/"instances"/file_name
     problem = read_from_file(file_path.absolute())
     solution = Solution(problem)
     for i in range(len(problem.container_type_list)):
         for j in range(problem.container_type_list[i].num_available):
             solution = add_container(solution, i)
+    print("Generating initial solution")
     solution = constructive_heuristic(solution)
+    print("Generating initial solution: Done")
     g = 0.2
     ld = 0.2
-    max_perturb_iter = 1000
-    max_repair_iter = 10
+    max_perturb_iter = 3
+    max_repair_iter = 3
     best_solution = create_copy(solution)
     solution, best_solution = improvement_heuristic(solution, best_solution, g,ld, max_perturb_iter, max_repair_iter)
     for i in range(len(best_solution.container_dims)):

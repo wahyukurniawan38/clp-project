@@ -7,10 +7,12 @@ from heuristic.lns_safak.solution import Solution
 from heuristic.lns_safak.utils import get_addition_points, argsort_addition_points, filter_infeasible_addition_points
 from solver.utils import get_possible_rotation_mats
 
+@profile
 def add_item_to_container(solution: Solution,
                           cargo_idx: np.ndarray,
                           container_idx: int,
-                          mode:str="wall-building")-> Tuple[Solution, np.ndarray]:
+                          mode:str="wall-building",
+                          same_type:bool=False)-> Tuple[Solution, np.ndarray]:
     is_cargo_in_container = solution.cargo_container_maps == container_idx
     cc_idx = np.nonzero(is_cargo_in_container)[0]
     cc_positions = solution.positions[cc_idx, :]
@@ -59,23 +61,28 @@ def add_item_to_container(solution: Solution,
                 feasible_rotation_idx[0] = ri
                 break
         if len(feasible_rotation_idx)==0:
-            continue
+            if same_type:
+                break
+            else:
+                continue
         chosen_cargo_idx = cargo_idx[i]
         chosen_rotation_idx = feasible_rotation_idx[0]
         chosen_pos_idx = feasible_pos_idx[0]
         chosen_r = c_rotation_mats[chosen_rotation_idx]
         chosen_p = addition_points[chosen_pos_idx]
+        
         solution = insert_cargo_to_container(solution, chosen_cargo_idx, container_idx, chosen_r, chosen_p)
         is_inserted = True
-        
         # update the cargos in the container
         cc_positions = np.concatenate([cc_positions, chosen_p[np.newaxis, :]], axis=0)
         cc_rotation_mats = np.concatenate([cc_rotation_mats, chosen_r[np.newaxis, :, :]], axis=0)
         cc_real_dims =  np.concatenate([cc_real_dims, ci_real_dims[[chosen_rotation_idx],:]], axis=0)
         # add addition points
         new_addition_points = ci_real_dims[[chosen_rotation_idx],:]*np.eye(3,3) + chosen_p[np.newaxis, :]
+        new_addition_points = filter_infeasible_addition_points(new_addition_points, cc_positions, cc_real_dims, container_dim)
+        addition_points = filter_infeasible_addition_points(addition_points, chosen_p[np.newaxis,:],ci_real_dims[[chosen_rotation_idx],:],container_dim)
         addition_points = np.concatenate([addition_points, new_addition_points], axis=0)
-        addition_points = filter_infeasible_addition_points(addition_points, cc_positions, cc_real_dims, container_dim)
+        # addition_points = filter_infeasible_addition_points(addition_points, cc_positions, cc_real_dims, container_dim)
         sorted_ap_idx = argsort_addition_points(addition_points, mode)
         addition_points = addition_points[sorted_ap_idx]
 
