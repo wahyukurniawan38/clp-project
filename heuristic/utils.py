@@ -71,6 +71,16 @@ def remove_cargos_from_container(solution: SolutionBase,
                                  container_idx: int)-> SolutionBase:
     total_removed_weight = np.sum(solution.cargo_weights[cargo_idx])
     total_removed_volume = np.sum(solution.cargo_volumes[cargo_idx])
+    # re-arranging the center of gravity after removal
+    old_cog = solution.container_cogs[container_idx]
+    old_weight = solution.container_filled_weights[container_idx]
+
+    c_real_dims = (solution.cargo_dims[cargo_idx][np.newaxis,:]*solution.rotation_mats[cargo_idx,:,:]).sum(axis=-1)
+    c_center = solution.positions[cargo_idx,:2] + c_real_dims[:,:2]/2
+    c_weight = total_removed_weight
+
+    solution.container_cogs[container_idx] = (old_cog*old_weight - c_center*c_weight)/(old_weight-c_weight+1)
+
     solution.cargo_container_maps[cargo_idx] = -1
     solution.positions[cargo_idx,:] = -1
     solution.container_filled_volumes[container_idx] -= total_removed_volume
