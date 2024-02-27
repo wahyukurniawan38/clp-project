@@ -31,3 +31,5 @@ class SolutionBase:
         self.container_filled_weights = init_container_filled_weights(kwargs.get("container_filled_weights"))
         self.container_costs = init_container_costs(kwargs.get("container_costs"))      
         self.container_types = init_container_types(kwargs.get("container_types"))
+        self.container_cogs = init_container_cogs(kwargs.get("container_cogs"))
+        self.container_cog_tolerances = init_container_cog_tolerances(kwargs.get("container_cog_tolerances"))

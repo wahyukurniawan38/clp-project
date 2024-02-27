@@ -18,6 +18,8 @@ def add_container(solution:SolutionBase, container_type_idx):
     solution.container_filled_weights = np.append(solution.container_filled_weights, [0])
     solution.nums_container_used[container_type_idx] += 1
     solution.container_costs = np.append(solution.container_costs, [solution.problem.container_type_list[container_type_idx].cost])
+    solution.container_cogs = np.append(solution.container_cogs, [0])
+    solution.container_cog_tolerances = np.append(solution.container_cog_tolerances, [solution.problem.container_type_list[container_type_idx].cog_tolerance])
     solution.container_types = np.append(solution.container_types, [container_type_idx])
     return solution
 
@@ -37,8 +39,21 @@ def insert_cargo_to_container(solution:SolutionBase,
     solution.cargo_container_maps[cargo_idx] = container_idx
     solution.rotation_mats[cargo_idx,:] = rotation_mat
     solution.positions[cargo_idx,:] = position
+    cargo_weight = solution.cargo_weights[cargo_idx]
+    cargo_dim = solution.cargo_dims[cargo_idx]
+    cargo_real_dim = (cargo_dim[np.newaxis,:]*rotation_mat).sum(axis=-1)
+    old_weight = solution.container_filled_weights[container_idx]
+    
+    # recompute new center of gravity
+    if solution.container_cogs[container_idx] <=0:
+        solution.container_cogs[container_idx] = position[:2]+cargo_real_dim[:2]/2
+    else:
+        old_cog = solution.container_cogs
+        new_cog = (old_cog*old_weight + cargo_weight*(position[:2]+cargo_real_dim[:2]/2))/(old_weight+cargo_weight)
+        solution.container_cogs[container_idx] = new_cog
+
     solution.container_filled_volumes[container_idx] += solution.cargo_volumes[cargo_idx]
-    solution.container_filled_weights[container_idx] += solution.cargo_weights[cargo_idx]
+    solution.container_filled_weights[container_idx] += cargo_weight
     return solution
 
 
@@ -133,17 +148,17 @@ def is_collide_3d(pos1: np.ndarray,
     n, _ = pos1.shape
     m, _ = pos2.shape
     # print(n,m)
-    is_not_collide = np.zeros((n,m))
+    is_collide = np.ones((n,m))
     for i in range(n):
         for j in range(m):
             if np.any(pos1[i,:]>=cp2[j,:]) or np.any(cp1[i,:]<=pos2[j,:]):
-                is_not_collide[i,j] = True
+                is_collide[i,j] = False
 
     # is_not_collide1 = np.sum(pos1[:,np.newaxis,:] >= cp2[np.newaxis,:,:], axis=2) > 0
     # is_not_collide2 = np.sum(cp1[:,np.newaxis,:] <= pos2[np.newaxis,:,:], axis=2) > 0
     # is_not_collide = np.logical_or(is_not_collide1, is_not_collide2)
     # assert np.allclose(is_not_collide, is_not_collide_)
-    is_collide = np.logical_not(is_not_collide)
+    # is_collide = np.logical_not(is_not_collide)
     return is_collide
 
 """

@@ -32,7 +32,9 @@ if __name__ == "__main__":
             "length":1220,
             "width":240,
             "height":260,
-            "cost":2000,
+            "cost":500,
+            "psi_x":100,
+            "psi_y":50,
             "max_weight":27000,
             "num":num_40_feet_container
         },
@@ -40,7 +42,9 @@ if __name__ == "__main__":
             "length":600,
             "width":240,
             "height":260,
-            "cost":1200,
+            "cost":300,
+            "psi_x":50,
+            "psi_y":20,
             "max_weight":13000,
             "num":num_20_feet_container
         }
