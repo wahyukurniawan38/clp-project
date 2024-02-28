@@ -250,7 +250,6 @@ def get_front_surface(pos, dim):
     front_dim = dim - dim * np.asanyarray([[1,0,0]])
     return front_pos, front_dim
 
-@profile
 def get_feasibility_mask(container_dim:np.ndarray,
                           cc_dims:np.ndarray, 
                           cc_positions:np.ndarray, 

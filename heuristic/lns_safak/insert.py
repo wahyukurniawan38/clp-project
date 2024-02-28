@@ -7,7 +7,6 @@ from heuristic.lns_safak.solution import Solution
 from heuristic.lns_safak.utils import get_addition_points, argsort_addition_points, filter_infeasible_addition_points
 from solver.utils import get_possible_rotation_mats
 
-@profile
 def add_item_to_container(solution: Solution,
                           cargo_idx: np.ndarray,
                           container_idx: int,

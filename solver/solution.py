@@ -33,3 +33,44 @@ class SolutionBase:
         self.container_types = init_container_types(kwargs.get("container_types"))
         self.container_cogs = init_container_cogs(kwargs.get("container_cogs"))
         self.container_cog_tolerances = init_container_cog_tolerances(kwargs.get("container_cog_tolerances"))
+
+    def __str__(self) -> str:
+        is_cargo_packed = self.cargo_container_maps>=0
+        is_container_used = self.container_filled_volumes>0
+        total_volume_packed = np.sum(self.cargo_volumes[is_cargo_packed])
+        total_volume = np.sum(self.cargo_volumes)
+        print("Total volume packed: ", total_volume_packed, "("+str(total_volume_packed/total_volume)+")")
+        revenue = np.sum(self.cargo_costs[is_cargo_packed])
+        expense = np.sum(self.container_costs[is_container_used])
+        total_profit = revenue-expense
+        print("Profit: ", total_profit)
+        print("Revenue: ", revenue)
+        print("Expense: ", expense)
+        for ct_type in range(len(self.nums_container_used)):
+            is_used = self.container_filled_volumes>0
+            is_this_type_used = np.logical_and(self.container_types == ct_type, is_used)
+            num_this_type_used = np.count_nonzero(is_this_type_used)
+            print("Number of container type ",ct_type," used:", num_this_type_used)
+        for ct_idx in range(len(self.container_filled_volumes)):
+            utilization = self.container_filled_volumes[ct_idx]/self.container_max_volumes[ct_idx]
+            print("Container index ", ct_idx, " utilization: ", utilization)
+            is_in_container = self.cargo_container_maps == ct_idx
+            if not np.any(is_in_container):
+                continue
+            idx_in_container = np.arange(len(self.cargo_weights))[is_in_container]
+            print("Items' position in container index ", ct_idx)
+            print("Item x y z")
+            for idx in idx_in_container:
+                print(idx,self.positions[idx,0],self.positions[idx,1],self.positions[idx,2])
+            
+            print("Item's rotation in container index ",ct_idx)
+            print("Item","lx","ly","lz","wx","wy","wz","hx","hy","hz")
+            for idx in idx_in_container:
+                rotation = self.rotation_mats[idx]
+                lx,ly,lz = rotation[0,0],rotation[0,1],rotation[0,2]
+                wx,wy,wz = rotation[1,0],rotation[1,1],rotation[1,2]
+                hx,hy,hz = rotation[2,0],rotation[2,1],rotation[2,2]
+                print(idx,lx,ly,lz,wx,wy,wz,hx,hy,hz)
+        return ""
+            
+            

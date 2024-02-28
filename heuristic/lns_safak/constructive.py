@@ -24,7 +24,6 @@ from heuristic.lns_safak.insert import add_item_to_container
     8. check if there are no more unpacked items,
     then set is_feasible=True
 """     
-@profile
 def constructive_heuristic(solution:Solution, insertion_mode="layer-building"):
     container_filled_volumes = solution.container_filled_volumes
     container_costs = solution.container_costs
@@ -32,15 +31,15 @@ def constructive_heuristic(solution:Solution, insertion_mode="layer-building"):
     
     c_type_sorted = np.argsort(solution.cargo_type_priority)
     for ct_idx in sorted_container_idx:
-        print("Container:", ct_idx)
-        ct_type = solution.cargo_types[ct_idx]
+        # print("Container:", ct_idx)
+        ct_type = solution.container_types[ct_idx]
         for c_type in c_type_sorted:
             is_this_type = solution.cargo_types == c_type
             is_unpacked = solution.cargo_container_maps == -1
             unpacked_cargo_idx = np.nonzero(np.logical_and(is_this_type, is_unpacked))[0]
             if len(unpacked_cargo_idx)==0:
                 continue
-            print("Cargo type:", c_type, len(unpacked_cargo_idx))
+            # print("Cargo type:", c_type, len(unpacked_cargo_idx))
             
             # test for weight and volume capacity first
             volume = solution.cargo_volumes[unpacked_cargo_idx][0]

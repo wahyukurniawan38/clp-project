@@ -2,24 +2,46 @@ import hashlib
 
 import numpy as np
 
-from heuristic.block_building.utils import init_num_box_used, init_dim, init_packing_area
+from heuristic.block_building.utils import init_num_cargo_used, init_dim, init_packing_area
+from solver.utils import init_positions
 from solver.problem import Problem
 from solver.solution import SolutionBase
 
-
-class Block(SolutionBase):
+"""
+    this is similar to a solution
+    it has boxes inside of it
+    the boxes' position thus need to be marked
+    and so on and so forth, but it does not have
+    container.
+"""
+class Block:
     def __init__(self,
                 problem: Problem,
                 **kwargs) -> None:
         self.problem = problem 
         self.dim = init_dim(kwargs.get("dim"))
-        self.num_box_used = init_num_box_used(problem, kwargs.get("num_box_used"))
-        self.packing_area = init_packing_area(problem, kwargs.get("packing_area"))
+        self.num_cargo_used = init_num_cargo_used(problem, kwargs.get("num_box_used"))
         self.weight = 0 if kwargs.get("weight") is None else kwargs.get("weight")
-        self.center_of_gravity = kwargs.get("center_of_gravity")
+        self.cog = kwargs.get("cog")
+        self.block_position = kwargs.get("block_position")
 
-    # i think the hash of the positions 
-    # and the hash of rotation are all we need
+        # cargo info
+        self.cargo_weights = problem.cargo_weights
+        self.cargo_dims = problem.cargo_dims
+        self.cargo
+
+        # cargo dec variable
+        self.positions = init_positions(problem, kwargs.get("positions"))
+
+
+    # when not considering full support
+    # I think the only uniqueness we need about this box
+    # is :
+        # 1. weight
+        # 2. dimension
+        # 3. center of gravity
+        # 4. number of boxes per box type used
+        # 
     def __hash__(self):
         hashed_pos = hash(self.positions.tobytes())
         hashed_rot_mats = hash(self.rotation_mats.tobytes())

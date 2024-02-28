@@ -49,7 +49,6 @@ def init_default_cargo_type_rotation_sorted_idx(problem: Problem, default_cargo_
     default_c_rotation_sorted_idx = np.argsort(wall_span_area,axis=-1)
     return default_c_rotation_sorted_idx
 
-@profile
 @nb.njit(nb.float64[:,:](nb.float64[:,:],nb.float64[:,:],nb.float64[:,:],nb.float64[:]), cache=True)
 def filter_infeasible_addition_points(addition_points, cc_positions, cc_dims, container_dim):
     # n_ap,_ = addition_points.shape

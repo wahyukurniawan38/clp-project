@@ -1,4 +1,5 @@
 import pathlib
+import time
 
 import numpy as np
 
@@ -13,23 +14,28 @@ from solver.utils import visualize_box
 
 
 if __name__ == "__main__":
-    file_name = "n40_2_n20_0_nc_40_u_0.4.json"
+    file_name = "wahyu-175.json"
     file_path = pathlib.Path()/"instances"/file_name
     problem = read_from_file(file_path.absolute())
     solution = Solution(problem)
     for i in range(len(problem.container_type_list)):
         for j in range(problem.container_type_list[i].num_available):
             solution = add_container(solution, i)
-    print("Generating initial solution")
+    start = time.time()
     solution = constructive_heuristic(solution)
-    print("Generating initial solution: Done")
+    end_generate_solution = time.time()
     g = 0.2
     ld = 0.2
-    max_perturb_iter = 3
-    max_repair_iter = 3
+    max_perturb_iter = 10
+    max_repair_iter = 10
     best_solution = create_copy(solution)
+    start_improve_solution = time.time()
     solution, best_solution = improvement_heuristic(solution, best_solution, g,ld, max_perturb_iter, max_repair_iter)
+    end_improve_solution = time.time()
+    print("Generating initial solution: Done in", end_generate_solution-start, " seconds")
+    print("Improvement step: Done in ", end_improve_solution-start_improve_solution)
+    print("Total running time: ", end_improve_solution-start)
     for i in range(len(best_solution.container_dims)):
         is_inside_container = best_solution.cargo_container_maps == i
         visualize_box(best_solution.container_dims[i], best_solution.positions[is_inside_container], best_solution.cargo_dims[is_inside_container], best_solution.rotation_mats[is_inside_container])
-    
+    print(best_solution)

@@ -143,7 +143,7 @@ def visualize_box(container_dim:np.ndarray,
         color = colorList[counter % len(colorList)]
         plot_cube(axGlob, float(x), float(y), float(z), 
                     float(cc_real_dims[i,0]), float(cc_real_dims[i,1]), float(cc_real_dims[i,2]),
-                    color=color,text_annot=str(i))
+                    color=color,text_annot="")
         counter = counter + 1  
     plt.show() 
 
