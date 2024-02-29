@@ -54,6 +54,7 @@ class SolutionBase:
         for ct_idx in range(len(self.container_filled_volumes)):
             utilization = self.container_filled_volumes[ct_idx]/self.container_max_volumes[ct_idx]
             print("Container index ", ct_idx, " utilization: ", utilization)
+            print("Center of gravity:", self.container_cogs[ct_idx,:])
             is_in_container = self.cargo_container_maps == ct_idx
             if not np.any(is_in_container):
                 continue

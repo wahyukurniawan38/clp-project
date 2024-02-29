@@ -14,7 +14,7 @@ from solver.utils import visualize_box
 
 
 if __name__ == "__main__":
-    file_name = "wahyu-175.json"
+    file_name = "small-2.json"
     file_path = pathlib.Path()/"instances"/file_name
     problem = read_from_file(file_path.absolute())
     solution = Solution(problem)
@@ -26,8 +26,8 @@ if __name__ == "__main__":
     end_generate_solution = time.time()
     g = 0.2
     ld = 0.2
-    max_perturb_iter = 10
-    max_repair_iter = 10
+    max_perturb_iter = 1000
+    max_repair_iter = 1000
     best_solution = create_copy(solution)
     start_improve_solution = time.time()
     solution, best_solution = improvement_heuristic(solution, best_solution, g,ld, max_perturb_iter, max_repair_iter)

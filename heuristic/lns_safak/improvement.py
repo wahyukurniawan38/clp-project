@@ -66,12 +66,12 @@ def improvement_heuristic(current_solution:Solution,
                 cargo_to_remove = np.random.choice(packed_cargo_idx, [num_to_remove], replace=False)
                 new_solution = remove_cargos_from_container(new_solution, cargo_to_remove, ct_idx)
                 new_solution, infeasible_cargo_idx = remove_infeasible_cargo(new_solution, ct_idx)
+                removed_cargo_idx = cargo_to_remove
                 if len(infeasible_cargo_idx)>0:
                     new_solution, failed_to_insert_cargo_idx = add_item_to_container(new_solution, infeasible_cargo_idx, ct_idx, mode)
-                if len(failed_to_insert_cargo_idx)>0:
-                    removed_cargo_idx = np.concatenate([cargo_to_remove, failed_to_insert_cargo_idx])
-                else:
-                    removed_cargo_idx = cargo_to_remove
+                    if len(failed_to_insert_cargo_idx)>0:
+                        removed_cargo_idx = np.concatenate([cargo_to_remove, failed_to_insert_cargo_idx])
+                    
                 add_item_to_container(new_solution, removed_cargo_idx, ct_idx, mode)
             vol_packed_new,_,_ = compute_objective(new_solution)
             vol_packed_curr,_,_ = compute_objective(current_solution)
