@@ -15,3 +15,6 @@ if __name__ == "__main__":
     problem = read_from_file(file_path.absolute())
     solution = Solution(problem)
     simple_blocks = generate_simple_blocks(problem)
+    for block in simple_blocks:
+        print(block.dim, block.num_cargo_used)
+    print(len(simple_blocks))

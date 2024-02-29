@@ -2,6 +2,15 @@ import numpy as np
 
 from solver.problem import Problem
 
+def init_cog(cog:np.ndarray=None):
+    if cog is not None:
+        return cog.copy()
+    return np.zeros([2,])
+
+def init_block_position(block_position:np.ndarray=None):
+    if block_position is not None:
+        return block_position.copy()
+    return np.full([3,],-1)
 
 def init_num_cargo_used(problem:Problem, num_cargo_used:np.ndarray=None):
     if num_cargo_used is not None:

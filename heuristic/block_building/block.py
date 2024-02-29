@@ -2,10 +2,9 @@ import hashlib
 
 import numpy as np
 
-from heuristic.block_building.utils import init_num_cargo_used, init_dim, init_packing_area
-from solver.utils import init_positions
+from heuristic.block_building.utils import init_num_cargo_used, init_dim, init_cog, init_block_position
+from solver.utils import init_positions, init_rotation_mats
 from solver.problem import Problem
-from solver.solution import SolutionBase
 
 """
     this is similar to a solution
@@ -20,35 +19,43 @@ class Block:
                 **kwargs) -> None:
         self.problem = problem 
         self.dim = init_dim(kwargs.get("dim"))
-        self.num_cargo_used = init_num_cargo_used(problem, kwargs.get("num_box_used"))
-        self.weight = 0 if kwargs.get("weight") is None else kwargs.get("weight")
-        self.cog = kwargs.get("cog")
-        self.block_position = kwargs.get("block_position")
+        self.num_cargo_used = init_num_cargo_used(problem, kwargs.get("num_cargo_used"))
+        self.weight = kwargs.get("weight") or 0
+        self.volume = kwargs.get("volume") or 0
+        self.cog = init_cog(kwargs.get("cog")) 
+        self.block_position = init_block_position(kwargs.get("block_position"))
 
-        # cargo info
-        self.cargo_weights = problem.cargo_weights
+        # cargo info, for brief 
         self.cargo_dims = problem.cargo_dims
-        self.cargo
+        self.cargo_types = problem.cargo_types
+        self.cargo_weights = problem.cargo_weights
+        self.cargo_costs = problem.cargo_costs
+        self.cargo_volumes = problem.cargo_volumes
 
         # cargo dec variable
         self.positions = init_positions(problem, kwargs.get("positions"))
-
+        self.rotation_mats = init_rotation_mats(problem, kwargs.get("rotation_mats"))
+        
 
     # when not considering full support
     # I think the only uniqueness we need about this box
     # is :
-        # 1. weight
+        # 1. number of boxes per box type used
         # 2. dimension
         # 3. center of gravity
-        # 4. number of boxes per box type used
-        # 
     def __hash__(self):
-        hashed_pos = hash(self.positions.tobytes())
-        hashed_rot_mats = hash(self.rotation_mats.tobytes())
-        return hash(hashed_pos+hashed_rot_mats)
+        hashed_dimension = hash(self.dim.tobytes())
+        hashed_cog = hash(self.cog.tobytes())
+        hashed_num_cargo = hash(self.num_cargo_used.tobytes())
+        return hash(hashed_dimension+hashed_cog+hashed_num_cargo)
     
     def __eq__(self, other: object) -> bool:
-        is_position_same = np.allclose(self.positions, other.positions)
-        is_rotation_same = np.allclose(self.rotation_mats, other.rotation_mats)
-        return is_position_same and is_rotation_same
+        is_weight_same = self.weight == other.weight
+        is_dimension_same = np.allclose(self.dim, other.dim)
+        is_cog_same = np.allclose(self.cog, other.cog)
+        is_num_cargo_same = np.all(self.num_cargo_used == other.num_cargo_used)
+        return is_weight_same and\
+            is_dimension_same and\
+            is_cog_same and\
+            is_num_cargo_same
     
