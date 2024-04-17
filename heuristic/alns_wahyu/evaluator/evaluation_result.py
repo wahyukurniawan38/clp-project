@@ -79,5 +79,4 @@ class EvaluationResult:
                 continue
             if not solution.is_cog_feasible:
                 return False
-            print(solution.container_cogs)
         return True
