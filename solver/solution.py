@@ -17,6 +17,7 @@ class SolutionBase:
         self.cargo_weights = problem.cargo_weights
         self.cargo_costs = problem.cargo_costs
         self.cargo_volumes = problem.cargo_volumes
+        self.cargo_type_ids = np.asanyarray([ct.id for ct in problem.cargo_type_list]).astype(int)
 
         # init or deepcopy from kwargs
         self.positions = init_positions(problem, kwargs.get("positions"))
@@ -33,13 +34,18 @@ class SolutionBase:
         self.container_types = init_container_types(kwargs.get("container_types"))
         self.container_cogs = init_container_cogs(kwargs.get("container_cogs"))
         self.container_cog_tolerances = init_container_cog_tolerances(kwargs.get("container_cog_tolerances"))
-    
+
+
     @property
     def real_cargo_dims(self)->np.ndarray:
         return (self.cargo_dims[:,np.newaxis,:]*self.rotation_mats).sum(axis=-1)
 
     @property
-    def is_cog_feasible(self)->np.ndarray:
+    def is_all_cargo_packed(self)->bool:
+        return np.all(self.cargo_container_maps>=0)
+
+    @property
+    def is_cog_feasible(self)->bool:
         min_cogs = self.container_dims[:,:2]/2 - self.container_cog_tolerances[np.newaxis,:]
         max_cogs = self.container_dims[:,:2]/2 + self.container_cog_tolerances[np.newaxis,:]
         return np.all(np.logical_and(self.container_cogs>=min_cogs, self.container_cogs<=max_cogs))

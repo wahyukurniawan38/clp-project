@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import List
 
 import numpy as np
@@ -10,14 +11,21 @@ class EvaluationResult:
     def __init__(self, 
                  df_cargos:pd.DataFrame,
                  df_containers:pd.DataFrame,
-                 x: np.ndarray, 
+                 x: np.ndarray,
                  solution_list:List[SolutionBase],
                  omega:float=0.99):
         self.x = x
         self.df_cargos = df_cargos
         self.df_containters = df_containers
-        self.solution_list = solution_list
+        self.solution_list: List[SolutionBase] = solution_list
         self.omega = omega
+
+    @property
+    def container_utilities(self):
+        cargo_volumes = np.array(self.df_cargos["vol"])
+        container_filled_volumes = self.x.dot(cargo_volumes)
+        container_volume = self.solution_list[0].container_max_volumes[0]
+        return container_filled_volumes/container_volume
 
     @property
     def is_feasible(self):
@@ -68,7 +76,7 @@ class EvaluationResult:
         for solution in self.solution_list:
             if solution is None:
                 continue
-            if not np.all(solution.cargo_container_maps >=0):
+            if not solution.is_all_cargo_packed:
                 return False
         return True
     
@@ -80,3 +88,13 @@ class EvaluationResult:
             if not solution.is_cog_feasible:
                 return False
         return True
+    
+def create_copy(eval_result:EvaluationResult)->EvaluationResult:
+    new_x = eval_result.x.copy()
+    new_solution_list = deepcopy(eval_result.solution_list)
+    new_eval_result = EvaluationResult(eval_result.df_cargos,
+                                       eval_result.df_containters,
+                                       new_x,
+                                       new_solution_list,
+                                       eval_result.omega)
+    return new_eval_result

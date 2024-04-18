@@ -1,4 +1,5 @@
-from typing import Tuple, List
+from abc import ABC, abstractmethod
+from typing import List
 
 import numpy as np
 import pandas as pd
@@ -6,10 +7,11 @@ import pandas as pd
 from heuristic.alns_wahyu.evaluator.evaluation_result import EvaluationResult
 from solver.solution import SolutionBase
 
-class Evaluator():
-    def __init__(self):
-        return 
+class Evaluator(ABC):
+    def __init__(self) -> None:
+        super().__init__()
 
+    @abstractmethod
     def solve(self, 
               ccm:np.ndarray, 
               df_cargos: pd.DataFrame, 
