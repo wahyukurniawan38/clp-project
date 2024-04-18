@@ -7,6 +7,7 @@ import pandas as pd
 from heuristic.alns_wahyu.objective import compute_obj
 from solver.solution import SolutionBase
 
+
 class EvaluationResult:
     def __init__(self, 
                  df_cargos:pd.DataFrame,

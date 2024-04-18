@@ -6,6 +6,7 @@ import pandas as pd
 from heuristic.alns_wahyu.evaluator.evaluator import Evaluator
 from heuristic.alns_wahyu.evaluator.evaluation_result import EvaluationResult, create_copy
 from heuristic.alns_wahyu.utils import remove_unpacked_cargo_from_solution
+from solver.solution import SolutionBase
 
 # i think we can make this recursive
 # 1. first we need to find all failed cargos that need to be inserted
@@ -59,3 +60,30 @@ def insert_unpacked_cargo_to_containers(eval_result: EvaluationResult,
     eval_result.x = new_x
     eval_result = remove_unpacked_cargo_from_result(eval_result)
     return insert_unpacked_cargo_to_containers(eval_result, evaluator, allowed_container_idx[1:])    
+
+
+# now repair the cog by shifting the items
+def repair_cog(eval_result: EvaluationResult):
+    for s_idx, solution in enumerate(eval_result.solution_list):
+        if not solution.is_cog_feasible:
+            eval_result.solution_list[s_idx] = repair_solution_cog_by_shifting(solution)
+    return eval_result
+
+
+# if necessary shift to do is less than what's possible,
+# then just return the current solution, nothing can be done?
+# or keep shifting it?
+# for now keep shifting it
+def repair_solution_cog_by_shifting(solution: SolutionBase):
+    current_cog = solution.container_cogs[0,:]
+    cog_tolerance = solution.container_cog_tolerances
+    cc_real_dims = solution.real_cargo_dims
+    xy_container_dim = solution.container_dims[0,:2]
+    xy_corner_points = solution.positions[:,:2] + cc_real_dims[:,:2]
+    xy_container_mid = xy_container_dim/2
+    necessary_shift = np.clip((xy_container_mid-cog_tolerance)-current_cog, a_min=0, a_max=None)
+    max_shift = xy_container_dim-np.max(xy_corner_points,axis=0)
+    possible_shift = np.clip(necessary_shift, a_min=None, a_max=max_shift)
+    solution.positions[:,2] += possible_shift[np.newaxis,:]
+    solution.container_cogs[0,:] += possible_shift
+    return solution
