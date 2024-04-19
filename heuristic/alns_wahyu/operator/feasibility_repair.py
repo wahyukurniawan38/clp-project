@@ -19,16 +19,17 @@ def feasibility_repair(eval_result:EvaluationResult,
     df_containers = eval_result.df_containters
     omega = eval_result.omega
     for t in range(max_iter):
-        # eval_result = repair_cargo_packing_feasibility(eval_result, evaluator)
-        # eval_result = repair_cog(eval_result)
-        if eval_result.is_feasible:
-            break
+        eval_result = repair_cargo_packing_feasibility(eval_result, evaluator)
+        eval_result = repair_cog(eval_result)
+        break
+        #if eval_result.is_feasible:
+        #    break
         # r = randint(0,3)
-        r=0
-        is_success = False
-        if r==0:
-            is_success, new_x = move_heaviest_items_to_random_container(eval_result)
-        new_eval_result = evaluator.evaluate(new_x, df_cargos, df_containers, omega)
+        #r=0
+        #is_success = False
+        #if r==0:
+        #    is_success, new_x = move_heaviest_items_to_random_container(eval_result)
+        #new_eval_result = evaluator.evaluate(new_x, df_cargos, df_containers, omega)
         # if not is_success:
             # swap cargos from two containers
 
