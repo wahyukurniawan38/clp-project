@@ -29,6 +29,7 @@ def run():
                   cc_positions,
                   cc_dims,
                   cc_rotation_mats)
+        print("OK GAS")
         
         
 
