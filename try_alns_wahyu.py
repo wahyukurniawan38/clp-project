@@ -5,7 +5,7 @@ import pandas as pd
 
 from heuristic.alns_wahyu.evaluator.safak_evaluator import SafakEvaluator
 from heuristic.alns_wahyu.initialization import initialize_x
-from heuristic.alns_wahyu.operator.feasibility_repair import repair_cargo_packing_feasibility, repair_cog
+from heuristic.alns_wahyu.operator.feasibility_repair import feasibility_repair
 from solver.utils import visualize_box
 
 
@@ -16,14 +16,9 @@ def run():
     evaluator = SafakEvaluator()
     x = initialize_x(df_cargos, df_containers)
     eval_result = evaluator.evaluate(x, df_cargos, df_containers)
-    print(eval_result.is_feasible)
-    print(eval_result.is_all_cargo_packed, eval_result.is_all_cog_feasible)
-    if not eval_result.is_all_cargo_packed:
-        eval_result = repair_cargo_packing_feasibility(eval_result, evaluator)
-    print("REPAIRED")
-    print(eval_result.is_all_cargo_packed, eval_result.is_all_cog_feasible)
-    eval_result = repair_cog(eval_result)
-    print(eval_result.is_all_cargo_packed, eval_result.is_all_cog_feasible)
+    eval_result = feasibility_repair(eval_result, evaluator, max_iter=10)
+        
+
 
 if __name__ == "__main__":
     run()

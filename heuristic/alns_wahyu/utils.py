@@ -57,24 +57,3 @@ def create_container_type_list(df_containers):
         container_type_list.append(container_type)
     return container_type_list
 
-
-def remove_unpacked_cargo_from_solution(solution: SolutionBase)->SolutionBase:
-    unpacked_cargo_idx = np.where(solution.cargo_container_maps<0)[0]
-    packed_cargo_mask = solution.cargo_container_maps>=0
-    unpacked_cargo_ids = solution.cargo_type_ids[unpacked_cargo_idx]
-    container_type_list = solution.problem.container_type_list
-    cargo_type_list = [ctype for ctype in solution.problem.cargo_type_list if ctype.id not in unpacked_cargo_ids]
-    new_problem = Problem(cargo_type_list, container_type_list)
-
-    solution.problem = new_problem
-    solution.cargo_dims =  new_problem.cargo_dims
-    solution.cargo_types = new_problem.cargo_types
-    solution.cargo_weights = new_problem.cargo_weights
-    solution.cargo_costs = new_problem.cargo_costs
-    solution.cargo_volumes = new_problem.cargo_volumes
-    solution.cargo_type_ids = np.asanyarray([ct.id for ct in new_problem.cargo_type_list]).astype(int)
-
-    solution.positions = solution.positions[packed_cargo_mask,:]
-    solution.cargo_container_maps = solution.cargo_container_maps[packed_cargo_mask]
-    solution.rotation_mats = solution.rotation_mats[packed_cargo_mask,:,:]
-    return solution

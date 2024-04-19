@@ -17,6 +17,8 @@ class EvaluationResult:
                  omega:float=0.99):
         self.x = x
         self.df_cargos = df_cargos
+        self.cargo_weights = np.array(df_cargos["weight"])
+        self.cargo_volumes = np.array(df_cargos["vol"])
         self.df_containters = df_containers
         self.solution_list: List[SolutionBase] = solution_list
         self.omega = omega
