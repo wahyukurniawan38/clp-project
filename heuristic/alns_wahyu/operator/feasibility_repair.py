@@ -4,9 +4,9 @@ from typing import Tuple
 
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 
-from heuristic.alns_wahyu.evaluator.evaluation_result import (EvaluationResult,
-                                                              create_copy)
+from heuristic.alns_wahyu.evaluator.evaluation_result import EvaluationResult, create_copy
 from heuristic.alns_wahyu.evaluator.evaluator import Evaluator
 from heuristic.alns_wahyu.operator.utils import *
 from solver.solution import SolutionBase
@@ -18,46 +18,95 @@ def feasibility_repair(eval_result:EvaluationResult,
     df_cargos = eval_result.df_cargos
     df_containers = eval_result.df_containters
     omega = eval_result.omega
-    for t in range(max_iter):
+    for t in tqdm(range(max_iter), desc="Feasibility Repair"):
         eval_result = repair_cargo_packing_feasibility(eval_result, evaluator)
         eval_result = repair_cog(eval_result)
-        break
-        #if eval_result.is_feasible:
-        #    break
-        # r = randint(0,3)
-        #r=0
-        #is_success = False
-        #if r==0:
-        #    is_success, new_x = move_heaviest_items_to_random_container(eval_result)
-        #new_eval_result = evaluator.evaluate(new_x, df_cargos, df_containers, omega)
-        # if not is_success:
+        if eval_result.is_feasible:
+           break
+        r = randint(0,3)
+        # r = 0
+        is_success = False
+        new_x = None
+        if r==0:
+            is_success, new_x = move_heaviest_cargo_to_random_container(eval_result)
+        elif r==1:
+            is_success, new_x = move_heaviest_cargo_to_least_loaded_container(eval_result)
+        elif r==2:
+            is_success, new_x = move_heaviest_cargo_to_second_least_loaded_container(eval_result)
+        else:
+            is_success, new_x = move_partial_cargo_to_least_loaded_container(eval_result)
+        if not is_success:
             # swap cargos from two containers
-
-        
+            least_lead_container_idx = find_least_loaded_container(eval_result)
+            most_load_container_idx = find_most_loaded_container(eval_result)
+            ct_heavy_idx = most_load_container_idx
+            ct_light_idx = least_lead_container_idx
+            if most_load_container_idx == least_lead_container_idx:
+                second_least_load_container_idx = find_second_least_loaded_container(eval_result)
+                ct_light_idx = second_least_load_container_idx
+            if ct_heavy_idx != ct_light_idx:
+                new_x = constrained_swap_items(eval_result, ct_heavy_idx, ct_light_idx)
+        if new_x is not None:
+            new_eval_result = evaluator.evaluate(new_x, df_cargos, df_containers, omega)
+            eval_result = new_eval_result
     return eval_result
 
+def constrained_swap_items(eval_result:EvaluationResult, ct_heavy_idx:int, ct_light_idx:int)->np.ndarray:
+    new_x = eval_result.x.copy()
+    cargo_loads = eval_result.cargo_loads
+    c_idx_in_heavy_ct = np.where(new_x[ct_heavy_idx,:])[0]
+    c_idx_in_light_ct = np.where(new_x[ct_light_idx,:])[0]
+    cargo_load_in_heavy_ct = cargo_loads[c_idx_in_heavy_ct]
+    c_heavy_sorted_idx = c_idx_in_heavy_ct[np.argsort(cargo_load_in_heavy_ct)]
+    # we shuffle the index in the light container,
+    # so that it does not become too deterministic
+    # e.g., we swap the same cargo on every iteration
+    np.random.shuffle(c_idx_in_light_ct)
+    for c_h_idx in c_heavy_sorted_idx:
+        for c_l_idx in c_idx_in_light_ct:
+            if can_swap(eval_result, ct_heavy_idx, ct_light_idx, c_h_idx, c_l_idx):
+                new_x[ct_heavy_idx,c_h_idx]=0
+                new_x[ct_heavy_idx,c_l_idx]=1
+                new_x[ct_light_idx,c_h_idx]=1
+                new_x[ct_light_idx,c_l_idx]=0
+                return new_x
+    return new_x
 
-def find_least_loaded_container(eval_result:EvaluationResult)->int:
-    item_loads = eval_result.cargo_volumes*eval_result.cargo_weights
-    # is_container_filled = 
+def move_partial_cargo_to_least_loaded_container(eval_result:EvaluationResult)->Tuple[bool, np.ndarray]:
+    cargo_to_move_idx = find_cargo_to_move_with_threshold(eval_result)
+    if len(cargo_to_move_idx)==0:
+        return False, None
+    container_idx = find_least_loaded_container(eval_result, cargo_to_move_idx)
+    if container_idx == -1:
+        return False, None
+    new_x = eval_result.x.copy()
+    new_x[:, cargo_to_move_idx] = 0
+    new_x[container_idx,cargo_to_move_idx] = 1
+    return True, new_x
+        
+        
 
-def find_suitable_random_container(eval_result:EvaluationResult, 
-                                   heaviest_infeasible_cargo_idx:np.ndarray)->int:
-    hi_volume = np.sum(eval_result.cargo_volumes[heaviest_infeasible_cargo_idx])
-    hi_weight = np.sum(eval_result.cargo_weights[heaviest_infeasible_cargo_idx])
-    remaining_container_volumes = np.asanyarray([solution.container_max_volumes[0]-solution.container_filled_volumes[0] for solution in eval_result.solution_list])
-    remaining_container_weights = np.asanyarray([solution.container_max_weights[0]-solution.container_filled_weights[0] for solution in eval_result.solution_list])
-    container_has_enough_weight_cap = hi_weight<=remaining_container_weights
-    container_has_enough_vol_cap = hi_volume<=remaining_container_volumes
-    is_container_suitable = np.logical_and(container_has_enough_vol_cap, container_has_enough_weight_cap)
-    if not np.any(is_container_suitable):
-        return -1
-    suitable_containers = np.where(is_container_suitable)[0]
-    selected_container = np.random.choice(suitable_containers)
-    return selected_container
+def move_heaviest_cargo_to_second_least_loaded_container(eval_result:EvaluationResult)->int:
+    heaviest_infeasible_cargo_idx = find_heaviest_infeasible_cargos(eval_result)
+    container_idx = find_second_least_loaded_container(eval_result, heaviest_infeasible_cargo_idx)
+    if container_idx == -1:
+        return False, None
+    new_x = eval_result.x.copy()
+    new_x[:, heaviest_infeasible_cargo_idx] = 0
+    new_x[container_idx,heaviest_infeasible_cargo_idx] = 1
+    return True, new_x
 
+def move_heaviest_cargo_to_least_loaded_container(eval_result:EvaluationResult)->int:
+    heaviest_infeasible_cargo_idx = find_heaviest_infeasible_cargos(eval_result)
+    container_idx = find_least_loaded_container(eval_result, heaviest_infeasible_cargo_idx)
+    if container_idx == -1:
+        return False, None
+    new_x = eval_result.x.copy()
+    new_x[:, heaviest_infeasible_cargo_idx] = 0
+    new_x[container_idx,heaviest_infeasible_cargo_idx] = 1
+    return True, new_x
 
-def move_heaviest_items_to_random_container(eval_result:EvaluationResult)->Tuple[bool, np.ndarray]:
+def move_heaviest_cargo_to_random_container(eval_result:EvaluationResult)->Tuple[bool, np.ndarray]:
     heaviest_infeasible_cargo_idx = find_heaviest_infeasible_cargos(eval_result)
     container_idx = find_suitable_random_container(eval_result, heaviest_infeasible_cargo_idx)
     if container_idx == -1:

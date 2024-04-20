@@ -35,6 +35,9 @@ class SolutionBase:
         self.container_cogs = init_container_cogs(kwargs.get("container_cogs"))
         self.container_cog_tolerances = init_container_cog_tolerances(kwargs.get("container_cog_tolerances"))
 
+    @property
+    def is_empty(self)->np.ndarray:
+        return len(self.problem.cargo_type_list)==0
 
     @property
     def real_cargo_dims(self)->np.ndarray:
@@ -42,10 +45,14 @@ class SolutionBase:
 
     @property
     def is_all_cargo_packed(self)->bool:
+        if self.is_empty:
+            return True
         return np.all(self.cargo_container_maps>=0)
 
     @property
     def is_cog_feasible(self)->bool:
+        if self.is_empty:
+            return True
         min_cogs = self.container_dims[:,:2]/2 - self.container_cog_tolerances[np.newaxis,:]
         max_cogs = self.container_dims[:,:2]/2 + self.container_cog_tolerances[np.newaxis,:]
         return np.all(np.logical_and(self.container_cogs>=min_cogs, self.container_cogs<=max_cogs))

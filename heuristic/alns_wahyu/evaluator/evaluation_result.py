@@ -14,11 +14,17 @@ class EvaluationResult:
                  df_containers:pd.DataFrame,
                  x: np.ndarray,
                  solution_list:List[SolutionBase],
-                 omega:float=0.99):
+                 omega:float=0.99,
+                 cargo_weights:np.array=None,
+                 cargo_volumes:np.array=None,
+                 cargo_loads:np.array=None):
         self.x = x
         self.df_cargos = df_cargos
-        self.cargo_weights = np.array(df_cargos["weight"])
-        self.cargo_volumes = np.array(df_cargos["vol"])
+        self.cargo_weights = cargo_weights or np.array(df_cargos["weight"])
+        self.cargo_volumes = cargo_volumes or np.array(df_cargos["vol"])
+        self.cargo_loads = cargo_loads or self.cargo_weights*self.cargo_volumes
+        self.max_container_volume = np.array(df_containers["volume"])[0]
+        self.max_container_weight = np.array(df_containers["weight"])[0]
         self.df_containters = df_containers
         self.solution_list: List[SolutionBase] = solution_list
         self.omega = omega
@@ -99,5 +105,8 @@ def create_copy(eval_result:EvaluationResult)->EvaluationResult:
                                        eval_result.df_containters,
                                        new_x,
                                        new_solution_list,
-                                       eval_result.omega)
+                                       eval_result.omega,
+                                       eval_result.cargo_weights,
+                                       eval_result.cargo_volumes,
+                                       eval_result.cargo_loads)
     return new_eval_result

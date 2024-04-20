@@ -53,6 +53,8 @@ def read_from_file(instance_path):
                                             d_container_type["max_weight"],
                                             d_container_type["cost"],
                                             cog_tolerance,
+                                            cog_tolerance,
+                                            cog_tolerance,
                                             int(d_container_type["num"]))
             container_type_list += [container_type]
         d_cargo_types = d["cargo_types"]

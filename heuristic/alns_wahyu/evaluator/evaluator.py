@@ -6,10 +6,11 @@ import pandas as pd
 
 from heuristic.alns_wahyu.evaluator.evaluation_result import EvaluationResult
 from solver.solution import SolutionBase
+from solver.problem import Problem
 
 class Evaluator(ABC):
     def __init__(self) -> None:
-        super().__init__()
+        return
 
     @abstractmethod
     def solve(self, 
@@ -26,7 +27,8 @@ class Evaluator(ABC):
         solution_list: List[SolutionBase] = []
         for container_idx, chosen_cargo_mask in enumerate(x):
             if not np.any(chosen_cargo_mask):
-                solution_list += [None]
+                solution_list += [SolutionBase(Problem([],[]))]
+                continue
             solution = self.solve(chosen_cargo_mask, df_cargos, df_containers)
             solution_list += [solution]
         return EvaluationResult(df_cargos, df_containers, x, solution_list, omega)

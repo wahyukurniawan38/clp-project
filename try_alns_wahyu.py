@@ -20,16 +20,18 @@ def run():
     print(eval_result.is_all_cargo_packed, eval_result.is_all_cog_feasible)
     eval_result = feasibility_repair(eval_result, evaluator, max_iter=10)
     print(eval_result.is_all_cargo_packed, eval_result.is_all_cog_feasible)
+    
+    
     for s_idx, solution in enumerate(eval_result.solution_list):
         container_dim = solution.container_dims[0]
-        cc_positions = solution.positions
-        cc_dims = solution.cargo_dims
-        cc_rotation_mats = solution.rotation_mats
+        is_packed = solution.cargo_container_maps >=0
+        cc_positions = solution.positions[is_packed,:]
+        cc_dims = solution.cargo_dims[is_packed,:]
+        cc_rotation_mats = solution.rotation_mats[is_packed,:,:]
         visualize_box(container_dim,
                   cc_positions,
                   cc_dims,
                   cc_rotation_mats)
-        print("OK GAS")
         
         
 
