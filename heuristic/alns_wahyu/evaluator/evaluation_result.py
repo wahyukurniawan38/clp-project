@@ -4,9 +4,10 @@ from typing import List
 import numpy as np
 import pandas as pd
 
+
 from heuristic.alns_wahyu.objective import compute_obj
 from solver.solution import SolutionBase
-
+from solver.utils import visualize_box
 
 class EvaluationResult:
     def __init__(self, 
@@ -15,23 +16,57 @@ class EvaluationResult:
                  x: np.ndarray,
                  solution_list:List[SolutionBase],
                  omega:float=0.99,
-                 cargo_weights:np.array=None,
-                 cargo_volumes:np.array=None,
                  cargo_loads:np.array=None):
         self.x = x
         self.df_cargos = df_cargos
-        self.cargo_weights = cargo_weights or np.array(df_cargos["weight"])
-        self.cargo_volumes = cargo_volumes or np.array(df_cargos["vol"])
-        self.cargo_loads = cargo_loads or self.cargo_weights*self.cargo_volumes
-        self.max_container_volume = np.array(df_containers["volume"])[0]
-        self.max_container_weight = np.array(df_containers["weight"])[0]
         self.df_containters = df_containers
+        self.cargo_weights = df_cargos["weight"].to_numpy(copy=False)
+        self.cargo_volumes = df_cargos["vol"].to_numpy(copy=False)
+        self.cargo_loads = cargo_loads
+        if self.cargo_loads is None:
+            self.cargo_loads = self.cargo_weights*self.cargo_volumes
+        self.cargo_ratios = df_cargos["ratio"].to_numpy(copy=False)
+        self.cargo_prices = df_cargos["price"].to_numpy(copy=False)
+        self.container_cost = df_containers["e"].to_numpy(copy=False)[0]
+        self.container_dim =  np.array([df_containers['length'][0], df_containers['width'][0], df_containers['high'][0]])
+        self.max_container_volume = df_containers["volume"].to_numpy(copy=False)[0]
+        self.max_container_weight = df_containers["weight"].to_numpy(copy=False)[0]
         self.solution_list: List[SolutionBase] = solution_list
         self.omega = omega
 
+    def get_container_fig(self, ct_idx):
+        container_dim = self.container_dim
+        solution = self.solution_list[ct_idx]
+        is_cargo_packed = solution.cargo_container_maps >=0
+        cc_positions = solution.positions[is_cargo_packed,:]
+        cc_rotation_mats = solution.rotation_mats[is_cargo_packed,:,:]
+        cc_dims = solution.cargo_dims[is_cargo_packed,:]
+        return visualize_box(container_dim, cc_positions, cc_dims, cc_rotation_mats)
+
+    @property
+    def volume_packed_ratio(self):
+        total_volume = np.sum(self.cargo_volumes)
+        total_packed_volume = 0
+        for solution in self.solution_list:
+            is_packed = solution.cargo_container_maps>=0
+            packed_volume = np.sum(solution.cargo_volumes[is_packed])
+            total_packed_volume += packed_volume
+        return total_packed_volume/total_volume
+    
+    
+    @property
+    def weight_packed_ratio(self):
+        total_weight = np.sum(self.cargo_weights)
+        total_packed_weight = 0
+        for solution in self.solution_list:
+            is_packed = solution.cargo_container_maps>=0
+            packed_weight = np.sum(solution.cargo_weights[is_packed])
+            total_packed_weight += packed_weight
+        return total_packed_weight/total_weight
+    
     @property
     def container_utilities(self):
-        cargo_volumes = np.array(self.df_cargos["vol"])
+        cargo_volumes = self.cargo_volumes
         container_filled_volumes = self.x.dot(cargo_volumes)
         container_volume = self.solution_list[0].container_max_volumes[0]
         return container_filled_volumes/container_volume
@@ -42,7 +77,12 @@ class EvaluationResult:
 
     @property
     def score(self):
-        return compute_obj(self.x, self.df_cargos, self.df_containters, self.omega)
+        return compute_obj(self.x,
+                           self.cargo_volumes,
+                           self.cargo_prices,
+                           self.container_cost,
+                           self.max_container_volume, 
+                           self.omega)
 
     @property
     def positions(self):
@@ -83,20 +123,34 @@ class EvaluationResult:
     @property
     def is_all_cargo_packed(self):
         for solution in self.solution_list:
-            if solution is None:
-                continue
             if not solution.is_all_cargo_packed:
                 return False
         return True
     
     @property
+    def packing_feasibility_ratio(self):
+        num_used_container = np.sum(np.any(self.x, axis=1))
+        num_container_feasible = 0.
+        for solution in self.solution_list:
+            if solution.is_all_cargo_packed  and len(solution.cargo_types)>0:
+                num_container_feasible += 1
+        return num_container_feasible/num_used_container
+    
+    @property
     def is_all_cog_feasible(self):
         for solution in self.solution_list:
-            if solution is None:
-                continue
             if not solution.is_cog_feasible:
                 return False
         return True
+    
+    @property
+    def cog_feasibility_ratio(self):
+        num_used_container = np.sum(np.any(self.x, axis=1))
+        num_container_feasible = 0.
+        for solution in self.solution_list:
+            if not solution.is_cog_feasible and len(solution.cargo_types)>0:
+                num_container_feasible += 1
+        return num_container_feasible/num_used_container
     
 def create_copy(eval_result:EvaluationResult)->EvaluationResult:
     new_x = eval_result.x.copy()
@@ -106,7 +160,5 @@ def create_copy(eval_result:EvaluationResult)->EvaluationResult:
                                        new_x,
                                        new_solution_list,
                                        eval_result.omega,
-                                       eval_result.cargo_weights,
-                                       eval_result.cargo_volumes,
                                        eval_result.cargo_loads)
     return new_eval_result

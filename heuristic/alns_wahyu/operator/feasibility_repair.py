@@ -19,12 +19,12 @@ def feasibility_repair(eval_result:EvaluationResult,
     df_containers = eval_result.df_containters
     omega = eval_result.omega
     for t in tqdm(range(max_iter), desc="Feasibility Repair"):
-        eval_result = repair_cargo_packing_feasibility(eval_result, evaluator)
-        eval_result = repair_cog(eval_result)
+        # eval_result = repair_cargo_packing_feasibility(eval_result, evaluator)
+        # eval_result = repair_cog(eval_result)
         if eval_result.is_feasible:
            break
         r = randint(0,3)
-        # r = 0
+        r = 3
         is_success = False
         new_x = None
         if r==0:
@@ -57,7 +57,7 @@ def constrained_swap_items(eval_result:EvaluationResult, ct_heavy_idx:int, ct_li
     c_idx_in_heavy_ct = np.where(new_x[ct_heavy_idx,:])[0]
     c_idx_in_light_ct = np.where(new_x[ct_light_idx,:])[0]
     cargo_load_in_heavy_ct = cargo_loads[c_idx_in_heavy_ct]
-    c_heavy_sorted_idx = c_idx_in_heavy_ct[np.argsort(cargo_load_in_heavy_ct)]
+    c_heavy_sorted_idx = c_idx_in_heavy_ct[np.argsort(-cargo_load_in_heavy_ct)]
     # we shuffle the index in the light container,
     # so that it does not become too deterministic
     # e.g., we swap the same cargo on every iteration

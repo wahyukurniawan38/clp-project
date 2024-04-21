@@ -128,7 +128,8 @@ def plot_cube(ax, x, y, z, dx, dy, dz, color='red', text_annot:str=""):
 def visualize_box(container_dim:np.ndarray,
                   cc_positions:np.ndarray,
                   cc_dims:np.ndarray,
-                  cc_rotation_mats:np.ndarray):
+                  cc_rotation_mats:np.ndarray,
+                  show=False):
     
     fig = plt.figure()
     axGlob = fig.add_subplot(projection='3d')
@@ -145,5 +146,6 @@ def visualize_box(container_dim:np.ndarray,
                     float(cc_real_dims[i,0]), float(cc_real_dims[i,1]), float(cc_real_dims[i,2]),
                     color=color,text_annot="")
         counter = counter + 1  
-    plt.show() 
-
+    if show:
+        plt.show() 
+    return plt.gcf()
