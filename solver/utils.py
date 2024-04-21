@@ -130,7 +130,7 @@ def visualize_box(container_dim:np.ndarray,
                   cc_dims:np.ndarray,
                   cc_rotation_mats:np.ndarray,
                   show=False):
-    
+    plt.close('all')
     fig = plt.figure()
     axGlob = fig.add_subplot(projection='3d')
     # . plot scatola 
@@ -138,6 +138,8 @@ def visualize_box(container_dim:np.ndarray,
     # . plot intems in the box 
     colorList = ["black", "blue", "magenta", "orange"]
     counter = 0
+    if cc_positions is None:
+        return plt.gcf()
     cc_real_dims = (cc_dims[:,np.newaxis,:]*cc_rotation_mats).sum(axis=-1)
     for i in range(len(cc_dims)):
         x,y,z = cc_positions[i,0],cc_positions[i,1],cc_positions[i,2]

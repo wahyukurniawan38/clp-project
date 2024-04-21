@@ -6,8 +6,8 @@ import pandas as pd
 from tensorboardX import SummaryWriter
 
 from heuristic.alns_wahyu.evaluator.evaluation_result import create_copy
-from heuristic.alns_wahyu.evaluator.evaluator import (EvaluationResult,
-                                                      Evaluator)
+from heuristic.alns_wahyu.evaluator.evaluator import Evaluator
+from heuristic.alns_wahyu.evaluator.evaluation_result import EvaluationResult, is_better
 from heuristic.alns_wahyu.initialization import initialize_x
 from heuristic.alns_wahyu.objective import compute_obj
 from heuristic.alns_wahyu.operator.feasibility_repair import feasibility_repair
@@ -67,7 +67,8 @@ class ALNS_W():
         # log the container figure
         for ct_idx in range(len(eval_result.solution_list)):
             fig = eval_result.get_container_fig(ct_idx)
-            self.log_writer.add_figure("Container Fig-"+str(ct_idx), fig, t)
+            if fig is not None:
+                self.log_writer.add_figure("Container Fig-"+str(ct_idx), fig, t)
             
         
     def solve(self,
@@ -112,6 +113,9 @@ class ALNS_W():
             "container_max_volume": container_max_volume,
             "container_max_weight": container_max_weight,
         }
+        
+        not_improving_count = 0
+        patience = 10
         for t in range(1, self.max_iteration+1):
             # preparing (destroy) operator arguments
             dest_degree = (self.d2-self.d1)/t + self.d1
@@ -139,16 +143,17 @@ class ALNS_W():
                 if not next_eval_result.is_feasible:
                     next_eval_result = feasibility_repair(next_eval_result, self.evaluator, self.max_feasibility_repair_iteration)
                 next_score = next_eval_result.score
-                is_as_feasible = eval_result.is_feasible == next_eval_result.is_feasible
-                has_better_score = next_score>score
-                is_improve_feasibility = not eval_result.is_feasible and next_eval_result.is_feasible
-                if is_improve_feasibility or (is_as_feasible and has_better_score):
+                
+                if is_better(next_eval_result, eval_result):
                     destroy_scores[destroy_op_idx] = self.a*destroy_scores[destroy_op_idx]+(1-self.a)*self.b1
                     repair_scores[repair_op_idx] = self.a*repair_scores[repair_op_idx]+(1-self.a)*self.b1 
+                    not_improving_count = 0
                     # x = next_x.copy()
                     # eval_result = next_eval_result
                     # score = next_score   
                 else:
+                    # revert solution if straying too far not improving
+                    not_improving_count += 1
                     destroy_scores[destroy_op_idx] = self.a*destroy_scores[destroy_op_idx]+(1-self.a)*self.b2
                     repair_scores[repair_op_idx] = self.a*repair_scores[repair_op_idx]+(1-self.a)*self.b2
                 
@@ -158,12 +163,16 @@ class ALNS_W():
                 eval_result = next_eval_result
                 score = next_score   
                 
-                is_as_feasible = best_eval_result.is_feasible == next_eval_result.is_feasible
-                has_better_score = next_score>best_score
-                is_improve_feasibility = not best_eval_result.is_feasible and next_eval_result.is_feasible
-                if is_improve_feasibility or (is_as_feasible and has_better_score):
+                # print(next_eval_result.is_all_cog_feasible, best_eval_result.is_all_cog_feasible)
+                # print(next_eval_result.cog_feasibility_ratio, best_eval_result.cog_feasibility_ratio)
+                # print(next_eval_result.is_all_cargo_packed, best_eval_result.is_all_cargo_packed)
+                # print(next_eval_result.packing_feasibility_ratio, best_eval_result.packing_feasibility_ratio)
+                if is_better(next_eval_result, best_eval_result):
+                    # print("yes")
+                    # print(next_eval_result.cog_feasibility_ratio)
+                    # print
                     best_x = next_x.copy()
-                    best_eval_result = next_eval_result
+                    best_eval_result = create_copy(next_eval_result)
                     best_score = next_score        
                 self.log(eval_result, 
                          best_eval_result, 
@@ -174,6 +183,12 @@ class ALNS_W():
                          repair_counts,
                          repair_scores,
                          t)
+            else:
+                not_improving_count += 1
+            if not_improving_count == patience:
+                x = best_x.copy()
+                eval_result = create_copy(best_eval_result)
+                score = best_score
     
         return eval_result, best_eval_result
     

@@ -37,10 +37,16 @@ class EvaluationResult:
     def get_container_fig(self, ct_idx):
         container_dim = self.container_dim
         solution = self.solution_list[ct_idx]
-        is_cargo_packed = solution.cargo_container_maps >=0
-        cc_positions = solution.positions[is_cargo_packed,:]
-        cc_rotation_mats = solution.rotation_mats[is_cargo_packed,:,:]
-        cc_dims = solution.cargo_dims[is_cargo_packed,:]
+        if len(solution.cargo_dims)==0:
+            is_cargo_packed = None
+            cc_positions = None
+            cc_rotation_mats = None
+            cc_dims = None
+        else:    
+            is_cargo_packed = solution.cargo_container_maps >=0
+            cc_positions = solution.positions[is_cargo_packed,:]
+            cc_rotation_mats = solution.rotation_mats[is_cargo_packed,:,:]
+            cc_dims = solution.cargo_dims[is_cargo_packed,:]
         return visualize_box(container_dim, cc_positions, cc_dims, cc_rotation_mats)
 
     @property
@@ -68,8 +74,7 @@ class EvaluationResult:
     def container_utilities(self):
         cargo_volumes = self.cargo_volumes
         container_filled_volumes = self.x.dot(cargo_volumes)
-        container_volume = self.solution_list[0].container_max_volumes[0]
-        return container_filled_volumes/container_volume
+        return container_filled_volumes/self.max_container_volume
 
     @property
     def is_feasible(self):
@@ -148,7 +153,7 @@ class EvaluationResult:
         num_used_container = np.sum(np.any(self.x, axis=1))
         num_container_feasible = 0.
         for solution in self.solution_list:
-            if not solution.is_cog_feasible and len(solution.cargo_types)>0:
+            if solution.is_cog_feasible and len(solution.cargo_types)>0:
                 num_container_feasible += 1
         return num_container_feasible/num_used_container
     
@@ -162,3 +167,20 @@ def create_copy(eval_result:EvaluationResult)->EvaluationResult:
                                        eval_result.omega,
                                        eval_result.cargo_loads)
     return new_eval_result
+
+def is_better(eval_result_a:EvaluationResult, eval_result_b: EvaluationResult):
+    if eval_result_a.packing_feasibility_ratio > eval_result_b.packing_feasibility_ratio:
+        return True
+    if eval_result_a.packing_feasibility_ratio < eval_result_b.packing_feasibility_ratio:
+        return False
+    
+    if eval_result_a.cog_feasibility_ratio > eval_result_b.packing_feasibility_ratio:
+        return True
+    if eval_result_a.cog_feasibility_ratio < eval_result_b.packing_feasibility_ratio:
+        return False
+    
+    if eval_result_a.score > eval_result_b.score:
+        return True
+    return False
+    
+    

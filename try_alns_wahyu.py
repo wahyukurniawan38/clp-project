@@ -1,6 +1,7 @@
 import pathlib
 import random
 
+import matplotlib
 import numpy as np
 import pandas as pd
 from tensorboardX import SummaryWriter
@@ -57,4 +58,5 @@ if __name__ == "__main__":
     args = prepare_args()
     random.seed(args.seed)
     np.random.seed(args.seed)
+    matplotlib.use("Agg")
     run(args)

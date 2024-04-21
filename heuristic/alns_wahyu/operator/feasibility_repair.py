@@ -19,12 +19,11 @@ def feasibility_repair(eval_result:EvaluationResult,
     df_containers = eval_result.df_containters
     omega = eval_result.omega
     for t in tqdm(range(max_iter), desc="Feasibility Repair"):
-        # eval_result = repair_cargo_packing_feasibility(eval_result, evaluator)
-        # eval_result = repair_cog(eval_result)
+        eval_result = repair_cargo_packing_feasibility(eval_result, evaluator)
+        eval_result = repair_cog(eval_result)
         if eval_result.is_feasible:
            break
         r = randint(0,3)
-        r = 3
         is_success = False
         new_x = None
         if r==0:
