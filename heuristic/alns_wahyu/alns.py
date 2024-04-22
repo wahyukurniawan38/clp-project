@@ -4,6 +4,7 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 from tensorboardX import SummaryWriter
+from tqdm import tqdm
 
 from heuristic.alns_wahyu.evaluator.evaluation_result import create_copy
 from heuristic.alns_wahyu.evaluator.evaluator import Evaluator
@@ -74,8 +75,12 @@ class ALNS_W():
     def solve(self,
               df_cargos:pd.DataFrame,
               df_containers:pd.DataFrame) -> Tuple[EvaluationResult,EvaluationResult]:
+        print("Initializing x")
         x = initialize_x(df_cargos, df_containers)
+        print("Initializing x completed")
+        print("Begin initial evaluation")
         eval_result = self.evaluator.evaluate(x, df_cargos,  df_containers, self.omega)
+        print("Completed initial evaluation")
         cargo_volumes = eval_result.cargo_volumes
         cargo_prices = eval_result.cargo_prices
         cargo_weights = eval_result.cargo_weights
@@ -116,7 +121,7 @@ class ALNS_W():
         
         not_improving_count = 0
         patience = 10
-        for t in range(1, self.max_iteration+1):
+        for t in tqdm(range(1, self.max_iteration+1), "ALNS Main Iteration"):
             # preparing (destroy) operator arguments
             dest_degree = (self.d2-self.d1)/t + self.d1
             operator_arguments["nof"] = math.ceil(dest_degree*len(np.flatnonzero(x)))

@@ -28,7 +28,7 @@ class EvaluationResult:
         self.cargo_ratios = df_cargos["ratio"].to_numpy(copy=False)
         self.cargo_prices = df_cargos["price"].to_numpy(copy=False)
         self.container_cost = df_containers["e"].to_numpy(copy=False)[0]
-        self.container_dim =  np.array([df_containers['length'][0], df_containers['width'][0], df_containers['high'][0]])
+        self.container_dim =  np.array([df_containers['length'][0], df_containers['width'][0], df_containers['height'][0]])
         self.max_container_volume = df_containers["volume"].to_numpy(copy=False)[0]
         self.max_container_weight = df_containers["weight"].to_numpy(copy=False)[0]
         self.solution_list: List[SolutionBase] = solution_list

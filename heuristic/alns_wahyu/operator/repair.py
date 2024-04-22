@@ -23,10 +23,10 @@ class RandomRepair:
             is_ct_feasible_to_insert = np.logical_and(container_vol_after_insert<=container_max_volume, container_weight_after_insert<=container_max_weight)
             if not np.any(is_ct_feasible_to_insert):
                 continue
-            is_ct_used = np.any(x, axis=1)
-            is_used_and_feasible = np.logical_and(is_ct_feasible_to_insert, is_ct_used)
-            if np.any(is_used_and_feasible):
-                is_ct_feasible_to_insert = is_used_and_feasible
+            # is_ct_used = np.any(x, axis=1)
+            # is_used_and_feasible = np.logical_and(is_ct_feasible_to_insert, is_ct_used)
+            # if np.any(is_used_and_feasible):
+            #     is_ct_feasible_to_insert = is_used_and_feasible
             feasible_ct_idx = np.where(is_ct_feasible_to_insert)[0]
             chosen_ct_idx = np.random.choice(feasible_ct_idx)
             x[chosen_ct_idx,c_idx] = 1
@@ -63,10 +63,6 @@ class GreedyRepair:
             is_ct_feasible_to_insert = np.logical_and(container_vol_after_insert<=container_max_volume, container_weight_after_insert<=container_max_weight)
             if not np.any(is_ct_feasible_to_insert):
                 continue
-            is_ct_used = np.any(x, axis=1)
-            is_used_and_feasible = np.logical_and(is_ct_feasible_to_insert, is_ct_used)
-            if np.any(is_used_and_feasible):
-                is_ct_feasible_to_insert = is_used_and_feasible
             feasible_ct_idx = np.where(is_ct_feasible_to_insert)[0]
             feasible_ct_vol = container_filled_volumes[feasible_ct_idx]
             feasible_ct_sorted_idx_by_vol = np.argsort(feasible_ct_vol)

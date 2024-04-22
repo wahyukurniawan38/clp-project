@@ -27,7 +27,7 @@ def create_cargo_type_list(df_cargos:pd.DataFrame, cargo_mask:np.ndarray):
     idav = np.asanyarray([1,1,1], dtype=int)
     for i, row in df_cargos.iterrows():
         if cargo_mask[i]:  # Check if item is selected in any container
-            dim = np.array([row['length'], row['width'], row['high']])
+            dim = np.array([row['length'], row['width'], row['height']])
             cargo_type = CargoType(
                 id=i,
                 dim=dim,
@@ -43,7 +43,7 @@ def create_cargo_type_list(df_cargos:pd.DataFrame, cargo_mask:np.ndarray):
 def create_container_type_list(df_containers):
     container_type_list = []
     for i, row in df_containers.iterrows():
-        dim = np.array([row['length'], row['width'], row['high']])
+        dim = np.array([row['length'], row['width'], row['height']])
         container_type = ContainerType(
             id=row['Container'],
             dim=dim,
