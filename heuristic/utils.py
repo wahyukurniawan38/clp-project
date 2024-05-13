@@ -275,6 +275,21 @@ def get_feasibility_mask(container_dim:np.ndarray,
     is_collide_with_any = np.any(is_collide_all, axis=1)
     is_not_collide_with_any = np.logical_not(is_collide_with_any)
 
+    # # check if the, say, i-th cargo is inserted at the j-th position
+    # # enough base support is provided
+    # c_bottom_pos_, c_bottom_dims_ = get_bottom_surface(insertion_points_, c_dims_)
+    # container_bottom_pos, container_bottom_dim = get_bottom_surface(np.asanyarray([[0,0,0]]), container_dim[np.newaxis,:])
+    # cc_top_pos, cc_top_dim = get_top_surface(cc_positions, cc_dims)
+    # cc_top_pos = np.concatenate([cc_top_pos, container_bottom_pos], axis=0)
+    # cc_top_dim = np.concatenate([cc_top_dim, container_bottom_dim])
+    # is_on_top = c_bottom_pos_[:,np.newaxis,2] == cc_top_pos[np.newaxis,:,2]
+    # base_support_area = compute_collision(c_bottom_pos_[:,:2], c_bottom_dims_[:,:2], cc_top_pos[:,:2], cc_top_dim[:,:2])
+    # base_support_area *= is_on_top
+    # base_support_area = np.sum(base_support_area, axis=-1)
+    # base_area = c_dims_[:,0]*c_dims_[:,1]
+    # supported_base_area_ratio = base_support_area/base_area
+    # is_base_supported = supported_base_area_ratio>0.5
+
     # check if overflow the container
     is_not_overflow = (c_dims_ + insertion_points_) <= container_dim[np.newaxis,:]
     is_not_overflow = np.all(is_not_overflow, axis=-1)

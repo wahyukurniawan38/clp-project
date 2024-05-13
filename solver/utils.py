@@ -2,7 +2,9 @@ from copy import deepcopy
 from typing import List
 
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import numpy as np
+import random as rand
 
 from solver.problem import Problem
 
@@ -151,3 +153,54 @@ def visualize_box(container_dim:np.ndarray,
     if show:
         plt.show() 
     return plt.gcf()
+
+
+
+# def get_random_color():
+#     return "#" + "".join([rand.choice('0123456789ABCDEF') for _ in range(6)])
+
+# def draw_cuboid(ax, position, size, color=None, label=""):
+#     """Draw a cuboid"""
+#     if color is None:
+#         color = get_random_color()  # Use random color if none provided
+#     ox, oy, oz = position
+#     l, w, h = size
+#     vertices = np.array([[ox, oy, oz], [ox+l, oy, oz], [ox+l, oy+w, oz], [ox, oy+w, oz],
+#                          [ox, oy, oz+h], [ox+l, oy, oz+h], [ox+l, oy+w, oz+h], [ox, oy+w, oz+h]])
+#     faces = [[vertices[j] for j in [0, 1, 2, 3]], [vertices[j] for j in [4, 5, 6, 7]], 
+#              [vertices[j] for j in [0, 1, 5, 4]], [vertices[j] for j in [2, 3, 7, 6]], 
+#              [vertices[j] for j in [1, 2, 6, 5]], [vertices[j] for j in [4, 7, 3, 0]]]
+#     poly = Poly3DCollection(faces, facecolors=color, alpha=0.3)
+#     ax.add_collection3d(poly)
+#     # Add label to the center of the top face of the cuboid
+#     ax.text(ox + l/2, oy + w/2, oz + h, label, color='red', ha='center', va='bottom')
+
+# def visualize_box(container_dim:np.ndarray, cc_positions:np.ndarray, cc_dims:np.ndarray, cc_rotation_mats:np.ndarray, show=False):
+#     plt.close('all')
+#     fig = plt.figure()
+#     ax = fig.add_subplot(projection='3d')
+#     # Draw the container
+#     draw_cuboid(ax, (0, 0, 0), container_dim, color='grey')  # Draw the container in grey color
+
+#     # Draw each item in the container
+#     cc_real_dims = (cc_dims[:,np.newaxis,:]*cc_rotation_mats).sum(axis=-1)
+#     for i in range(len(cc_dims)):
+#         x, y, z = cc_positions[i]
+#         dims = cc_real_dims[i]
+#         color = get_random_color()  # Get a random color for each item
+#         label = f"Item {i+1}"  # Label items as Item 1, Item 2, ...
+#         draw_cuboid(ax, (x, y, z), dims, color, label)
+
+#     # Set axes labels and limits
+#     max_dim = max(container_dim)
+#     ax.set_xlabel('X')
+#     ax.set_ylabel('Y')
+#     ax.set_zlabel('Z')
+#     ax.set_xlim(0, max_dim)
+#     ax.set_ylim(0, max_dim)
+#     ax.set_zlim(0, max_dim)
+
+#     if show:
+#         plt.show()
+#     return plt.gcf()
+

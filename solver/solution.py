@@ -62,7 +62,11 @@ class SolutionBase:
         is_container_used = self.container_filled_volumes>0
         total_volume_packed = np.sum(self.cargo_volumes[is_cargo_packed])
         total_volume = np.sum(self.cargo_volumes)
-        print("Total volume packed: ", total_volume_packed, "("+str(total_volume_packed/total_volume)+")")
+        
+        if total_volume_packed > 0:
+            print("Total volume packed: ", total_volume_packed, "("+str(total_volume_packed/total_volume)+")")
+        else:
+            print("Total volume packed: ", total_volume_packed)
         revenue = np.sum(self.cargo_costs[is_cargo_packed])
         expense = np.sum(self.container_costs[is_container_used])
         total_profit = revenue-expense
@@ -94,7 +98,7 @@ class SolutionBase:
                 lx,ly,lz = rotation[0,0],rotation[0,1],rotation[0,2]
                 wx,wy,wz = rotation[1,0],rotation[1,1],rotation[1,2]
                 hx,hy,hz = rotation[2,0],rotation[2,1],rotation[2,2]
-                print(idx,lx,ly,lz,wx,wy,wz,hx,hy,hz)
+                print(self.cargo_type_ids[idx],lx,ly,lz,wx,wy,wz,hx,hy,hz)
         return ""
             
             

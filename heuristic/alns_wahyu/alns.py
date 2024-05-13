@@ -12,7 +12,7 @@ from heuristic.alns_wahyu.evaluator.evaluation_result import EvaluationResult, i
 from heuristic.alns_wahyu.initialization import initialize_x
 from heuristic.alns_wahyu.objective import compute_obj
 from heuristic.alns_wahyu.operator.feasibility_repair import feasibility_repair
-
+from solver.utils import visualize_box
 
 class ALNS_W():
     def __init__(self,
@@ -21,7 +21,7 @@ class ALNS_W():
                  evaluator:Evaluator,
                  log_writer: SummaryWriter,
                  max_iteration:int=10,
-                 max_feasibility_repair_iteration:int=10,
+                #  max_feasibility_repair_iteration:int=10,
                  omega:float=0.99,
                  a:float=0.9,
                  b1:float=1.5,
@@ -33,13 +33,23 @@ class ALNS_W():
         self.repair_operators = repair_operators
         self.log_writer = log_writer
         self.max_iteration = max_iteration
-        self.max_feasibility_repair_iteration = max_feasibility_repair_iteration
+        # self.max_feasibility_repair_iteration = max_feasibility_repair_iteration
         self.omega = omega
         self.a = a
         self.b1 = b1
         self.b2 = b2
         self.d1 = d1
         self.d2 = d2
+
+        self.best_iteration = None
+        self.current_eval_result:EvaluationResult = None
+        self.best_eval_result:EvaluationResult = None
+        self.destroy_counts = None
+        self.repair_counts = None
+        self.best_scores = []
+        self.scores = []
+        self.destroy_count_logs = []
+        self.repair_count_logs = []
         
     def log(self, 
             eval_result:EvaluationResult, 
@@ -121,6 +131,9 @@ class ALNS_W():
         
         not_improving_count = 0
         patience = 10
+        self.best_iteration = 0
+        termintaion = 0
+        limit = 10000
         for t in tqdm(range(1, self.max_iteration+1), "ALNS Main Iteration"):
             # preparing (destroy) operator arguments
             dest_degree = (self.d2-self.d1)/t + self.d1
@@ -146,19 +159,22 @@ class ALNS_W():
             if not eval_result.is_feasible or (eval_result.is_feasible and score < next_score):
                 next_eval_result = self.evaluator.evaluate(next_x, df_cargos, df_containers, self.omega)
                 if not next_eval_result.is_feasible:
-                    next_eval_result = feasibility_repair(next_eval_result, self.evaluator, self.max_feasibility_repair_iteration)
+                    next_eval_result = feasibility_repair(next_eval_result, self.evaluator) #, self.max_feasibility_repair_iteration
                 next_score = next_eval_result.score
                 
+                #update score operator
                 if is_better(next_eval_result, eval_result):
                     destroy_scores[destroy_op_idx] = self.a*destroy_scores[destroy_op_idx]+(1-self.a)*self.b1
                     repair_scores[repair_op_idx] = self.a*repair_scores[repair_op_idx]+(1-self.a)*self.b1 
                     not_improving_count = 0
+                    termintaion = 0
                     # x = next_x.copy()
                     # eval_result = next_eval_result
                     # score = next_score   
                 else:
                     # revert solution if straying too far not improving
                     not_improving_count += 1
+                    termintaion += 1
                     destroy_scores[destroy_op_idx] = self.a*destroy_scores[destroy_op_idx]+(1-self.a)*self.b2
                     repair_scores[repair_op_idx] = self.a*repair_scores[repair_op_idx]+(1-self.a)*self.b2
                 
@@ -176,9 +192,11 @@ class ALNS_W():
                     # print("yes")
                     # print(next_eval_result.cog_feasibility_ratio)
                     # print
+                    self.best_iteration = t
                     best_x = next_x.copy()
                     best_eval_result = create_copy(next_eval_result)
                     best_score = next_score        
+                
                 self.log(eval_result, 
                          best_eval_result, 
                          self.destroy_operators,
@@ -190,10 +208,23 @@ class ALNS_W():
                          t)
             else:
                 not_improving_count += 1
+                termintaion += 1
             if not_improving_count == patience:
                 x = best_x.copy()
                 eval_result = create_copy(best_eval_result)
                 score = best_score
-    
-        return eval_result, best_eval_result
+            
+            self.scores += [eval_result.score]
+            self.best_scores += [best_eval_result.score]
+            self.destroy_count_logs += [destroy_counts.copy()]
+            self.repair_count_logs += [repair_counts.copy()]
+            if termintaion == limit:
+                print(f"Stopping early at iteration {t} due to no improvement in {limit} iterations.")
+                break
+
+        self.current_eval_result = eval_result  
+        self.best_eval_result = best_eval_result
+        self.destroy_counts = destroy_counts
+        self.repair_counts = repair_counts
+        # return eval_result, best_eval_result
     

@@ -13,12 +13,11 @@ from solver.solution import SolutionBase
 
 
 def feasibility_repair(eval_result:EvaluationResult, 
-                       evaluator:Evaluator,
-                       max_iter:int):
+                       evaluator:Evaluator): #,max_iter:int
     df_cargos = eval_result.df_cargos
     df_containers = eval_result.df_containters
     omega = eval_result.omega
-    for t in range(max_iter):
+    while True:#for t in range(max_iter):
         eval_result = repair_cargo_packing_feasibility(eval_result, evaluator)
         eval_result = repair_cog(eval_result)
         if eval_result.is_feasible:

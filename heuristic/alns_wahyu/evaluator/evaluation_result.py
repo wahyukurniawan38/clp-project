@@ -77,6 +77,12 @@ class EvaluationResult:
         return container_filled_volumes/self.max_container_volume
 
     @property
+    def overall_utility (self):
+        num_container_used = np.sum(np.any(self.x, axis = 1))
+        total_utilities = np.sum(self.container_utilities)
+        return total_utilities/num_container_used
+    
+    @property
     def is_feasible(self):
         return self.is_all_cargo_packed and self.is_all_cog_feasible
 
@@ -88,6 +94,15 @@ class EvaluationResult:
                            self.container_cost,
                            self.max_container_volume, 
                            self.omega)
+
+    @property
+    def num_cargo_packed(self):
+        n_packed = 0
+        for s_idx, solution in enumerate(self.solution_list):
+            num_cargo_packed_in_container = np.sum(solution.cargo_container_maps>=0)
+            n_packed += num_cargo_packed_in_container
+        return n_packed
+
 
     @property
     def positions(self):

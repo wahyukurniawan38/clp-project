@@ -78,7 +78,7 @@ def get_addition_points(cc_positions, cc_dims, container_dim)->np.ndarray:
     addition_points = filter_infeasible_addition_points(addition_points, cc_positions, cc_dims, container_dim)
     return addition_points
 
-def argsort_addition_points(addition_points, mode="wall-building"):
+def argsort_addition_points(addition_points, mode="layer-building"):
     # if mode == "layer-building"
     criteria = (addition_points[:,1], addition_points[:,0], addition_points[:,2])
     

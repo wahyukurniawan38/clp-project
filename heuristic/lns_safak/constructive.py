@@ -24,12 +24,14 @@ from heuristic.lns_safak.insert import add_item_to_container
     8. check if there are no more unpacked items,
     then set is_feasible=True
 """     
-def constructive_heuristic(solution:Solution, insertion_mode="layer-building"):
+def constructive_heuristic(solution:Solution, insertion_mode="wall-building"):
     container_filled_volumes = solution.container_filled_volumes
     container_costs = solution.container_costs
     sorted_container_idx = np.lexsort((-container_costs, -container_filled_volumes))
     
     c_type_sorted = np.argsort(solution.cargo_type_priority)
+    # c_type_sorted = np.random.permutation(solution.cargo_type_priority)
+
     for ct_idx in sorted_container_idx:
         # print("Container:", ct_idx)
         ct_type = solution.container_types[ct_idx]
