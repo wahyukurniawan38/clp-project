@@ -10,8 +10,8 @@ class RandomRepair:
                  cargo_weights:np.ndarray,
                  cargo_ratios:np.ndarray,
                  cargo_loads:np.ndarray,
-                 container_max_volume:float,
-                 container_max_weight:float,
+                 container_max_volumes:float,
+                 container_max_weights:float,
                  *args,
                  **kwargs) -> np.ndarray:
         unpacked_cargo_idx = np.where(np.logical_not(np.any(x, axis=0)))[0]
@@ -20,7 +20,7 @@ class RandomRepair:
         for c_idx in unpacked_cargo_idx:
             container_vol_after_insert = container_filled_volumes + cargo_volumes[c_idx]
             container_weight_after_insert = container_filled_weights + cargo_weights[c_idx]
-            is_ct_feasible_to_insert = np.logical_and(container_vol_after_insert<=container_max_volume, container_weight_after_insert<=container_max_weight)
+            is_ct_feasible_to_insert = np.logical_and(container_vol_after_insert<=container_max_volumes, container_weight_after_insert<=container_max_weights)
             if not np.any(is_ct_feasible_to_insert):
                 continue
             # is_ct_used = np.any(x, axis=1)
@@ -48,8 +48,8 @@ class GreedyRepair:
                  cargo_weights:np.ndarray,
                  cargo_ratios:np.ndarray,
                  cargo_loads:np.ndarray,
-                 container_max_volume:float,
-                 container_max_weight:float,
+                 container_max_volumes:np.ndarray,
+                 container_max_weights:np.ndarray,
                  *args,
                  **kwargs) -> np.ndarray:
         is_cargo_not_packed = np.logical_not(np.any(x, axis=0))
@@ -60,12 +60,12 @@ class GreedyRepair:
         for c_idx in unpacked_cargo_sorted_idx:
             container_vol_after_insert = container_filled_volumes + cargo_volumes[c_idx]
             container_weight_after_insert = container_filled_weights + cargo_weights[c_idx]
-            is_ct_feasible_to_insert = np.logical_and(container_vol_after_insert<=container_max_volume, container_weight_after_insert<=container_max_weight)
+            is_ct_feasible_to_insert = np.logical_and(container_vol_after_insert<=container_max_volumes, container_weight_after_insert<=container_max_weights)
             if not np.any(is_ct_feasible_to_insert):
                 continue
             feasible_ct_idx = np.where(is_ct_feasible_to_insert)[0]
             feasible_ct_vol = container_filled_volumes[feasible_ct_idx]
-            feasible_ct_sorted_idx_by_vol = np.argsort(feasible_ct_vol)
+            feasible_ct_sorted_idx_by_vol = np.argsort(-feasible_ct_vol)
             feasible_ct_idx = feasible_ct_idx[feasible_ct_sorted_idx_by_vol]
             is_container_filled = container_filled_volumes>0
             is_container_filled = is_container_filled[feasible_ct_sorted_idx_by_vol]

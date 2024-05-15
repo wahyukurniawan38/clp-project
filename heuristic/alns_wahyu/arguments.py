@@ -16,6 +16,11 @@ def prepare_args():
                         type=int,
                         default=1,
                         help='seed for random generator')
+    parser.add_argument('--num-replication',
+                        type=int,
+                        default=10,
+                        help='number of experiment replications')
+    
     
     # Hyperparam starts here
     parser.add_argument('--max-iteration',
@@ -50,6 +55,18 @@ def prepare_args():
                         type=float,
                         default=0.7,
                         help='to compute degree of destruction for destroy operator')     
+    parser.add_argument('--insertion-mode',
+                        type=str,
+                        choices=["wall-building", "layer-building", "column-building"],
+                        default="wall-building",
+                        help='constructinve heuristic insertion mode')    
+    parser.add_argument('--cargo-sort-criterion',
+                        type=str,
+                        choices=["random","lwh,dec", "lwh,inc", "h-base-area,dec-inc", "base-area,dec","base-area,inc", "wall-area,dec", "wall-area,inc", "column-area,dec", "column-area,inc"],
+                        default="random",
+                        help='cargo ordering criterion for the constructive heuristic')
+         
+    
     
     
     args = parser.parse_args(sys.argv[1:])

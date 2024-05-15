@@ -16,10 +16,12 @@ from solver.solution import SolutionBase
 def compute_objective(solution: SolutionBase)-> Tuple[float,float]:
     is_container_used = solution.container_filled_volumes>0
     container_cost = np.sum(solution.container_costs[is_container_used])
-
+    print('Total cost',container_cost)
     is_cargo_packed = solution.cargo_container_maps > -1
     cargo_profit = np.sum(solution.cargo_costs[is_cargo_packed])
+    print('Total rev', cargo_profit)
     total_cargo_profit = np.sum(solution.cargo_costs)
+    print(total_cargo_profit)
     cost_obj = (cargo_profit-container_cost)/total_cargo_profit
 
     container_utilization = solution.container_filled_volumes[is_container_used]/solution.container_max_volumes[is_container_used]

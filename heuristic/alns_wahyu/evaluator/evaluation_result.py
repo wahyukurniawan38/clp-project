@@ -27,10 +27,10 @@ class EvaluationResult:
             self.cargo_loads = self.cargo_weights*self.cargo_volumes
         self.cargo_ratios = df_cargos["ratio"].to_numpy(copy=False)
         self.cargo_prices = df_cargos["price"].to_numpy(copy=False)
-        self.container_cost = df_containers["e"].to_numpy(copy=False)[0]
+        self.container_costs = df_containers["e"].to_numpy(copy=False)
         self.container_dim =  np.array([df_containers['length'][0], df_containers['width'][0], df_containers['height'][0]])
-        self.max_container_volume = df_containers["volume"].to_numpy(copy=False)[0]
-        self.max_container_weight = df_containers["weight"].to_numpy(copy=False)[0]
+        self.max_container_volumes = df_containers["volume"].to_numpy(copy=False)
+        self.max_container_weights = df_containers["weight"].to_numpy(copy=False)
         self.solution_list: List[SolutionBase] = solution_list
         self.omega = omega
 
@@ -74,7 +74,7 @@ class EvaluationResult:
     def container_utilities(self):
         cargo_volumes = self.cargo_volumes
         container_filled_volumes = self.x.dot(cargo_volumes)
-        return container_filled_volumes/self.max_container_volume
+        return container_filled_volumes/self.max_container_volumes
 
     @property
     def overall_utility (self):
@@ -91,8 +91,8 @@ class EvaluationResult:
         return compute_obj(self.x,
                            self.cargo_volumes,
                            self.cargo_prices,
-                           self.container_cost,
-                           self.max_container_volume, 
+                           self.container_costs,
+                           self.max_container_volumes, 
                            self.omega)
 
     @property
@@ -189,9 +189,9 @@ def is_better(eval_result_a:EvaluationResult, eval_result_b: EvaluationResult):
     if eval_result_a.packing_feasibility_ratio < eval_result_b.packing_feasibility_ratio:
         return False
     
-    if eval_result_a.cog_feasibility_ratio > eval_result_b.packing_feasibility_ratio:
+    if eval_result_a.cog_feasibility_ratio > eval_result_b.cog_feasibility_ratio:
         return True
-    if eval_result_a.cog_feasibility_ratio < eval_result_b.packing_feasibility_ratio:
+    if eval_result_a.cog_feasibility_ratio < eval_result_b.cog_feasibility_ratio:
         return False
     
     if eval_result_a.score > eval_result_b.score:

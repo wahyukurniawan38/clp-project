@@ -82,15 +82,15 @@ def get_container_capacity_feasibility_mask(eval_result:EvaluationResult,
     cargo_weights = eval_result.cargo_weights
     hi_volume = np.sum(cargo_volumes[cargo_to_insert_idx])
     hi_weight = np.sum(cargo_weights[cargo_to_insert_idx])
-    max_volume = eval_result.max_container_volume
-    max_weight = eval_result.max_container_weight
+    max_volumes = eval_result.max_container_volumes
+    max_weights = eval_result.max_container_weights
     # remove the cargo_to_insert_idx first
     x_ = eval_result.x.copy()
     x_[:, cargo_to_insert_idx] = 0
     container_filled_volume = x_.dot(cargo_volumes)
     container_filled_weight = x_.dot(cargo_weights)
-    remaining_container_volumes = max_volume-container_filled_volume
-    remaining_container_weights = max_weight-container_filled_weight
+    remaining_container_volumes = max_volumes-container_filled_volume
+    remaining_container_weights = max_weights-container_filled_weight
     container_has_enough_weight_cap = hi_weight<=remaining_container_weights
     container_has_enough_vol_cap = hi_volume<=remaining_container_volumes
     is_cap_feasible = np.logical_and(container_has_enough_vol_cap, container_has_enough_weight_cap)

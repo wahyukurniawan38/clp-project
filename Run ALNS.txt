@@ -1,0 +1,11 @@
+python try_alns_wahyu.py --max-iteration 500 --instance-filename Scenario1.xlsx --title Scenario1-WB-DC --cargo-sort-criterion wall-area,dec --insertion-mode wall-building --num-replication 10
+python try_alns_wahyu.py --max-iteration 500 --instance-filename Scenario2.xlsx --title Scenario2-WB-DC --cargo-sort-criterion wall-area,dec --insertion-mode wall-building --num-replication 10
+python try_alns_wahyu.py --max-iteration 500 --instance-filename Scenario3.xlsx --title Scenario3-WB-DC --cargo-sort-criterion wall-area,dec --insertion-mode wall-building --num-replication 10
+python try_alns_wahyu.py --max-iteration 500 --instance-filename Scenario4.xlsx --title Scenario4-WB-DC --cargo-sort-criterion wall-area,dec --insertion-mode wall-building --num-replication 10
+python try_alns_wahyu.py --max-iteration 500 --instance-filename Scenario5.xlsx --title Scenario5-WB-DC --cargo-sort-criterion wall-area,dec --insertion-mode wall-building --num-replication 10
+python try_alns_wahyu.py --max-iteration 500 --instance-filename Scenario5.xlsx --title Scenario5-WB-DC --cargo-sort-criterion wall-area,dec --insertion-mode wall-building --num-replication 10
+
+python try_alns_wahyu.py --max-iteration 10000 --instance-filename Scenario1.xlsx --title Scenario1-WB-DC --cargo-sort-criterion wall-area,dec --insertion-mode wall-building --num-replication 1
+
+
+=C2 = MIN($C$2:$C$11)

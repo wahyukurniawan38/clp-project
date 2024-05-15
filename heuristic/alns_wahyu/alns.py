@@ -23,7 +23,7 @@ class ALNS_W():
                  max_iteration:int=10,
                 #  max_feasibility_repair_iteration:int=10,
                  omega:float=0.99,
-                 a:float=0.9,
+                 a:float=0.7,
                  b1:float=1.5,
                  b2:float=0.6,
                  d1:float=0.1,
@@ -86,22 +86,46 @@ class ALNS_W():
               df_cargos:pd.DataFrame,
               df_containers:pd.DataFrame) -> Tuple[EvaluationResult,EvaluationResult]:
         print("Initializing x")
-        x = initialize_x(df_cargos, df_containers)
+        x = np.array([[0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 0, 1, 0],
+            [1, 0, 1, 1, 0, 1]]) #initialize_x(df_cargos, df_containers)
         print("Initializing x completed")
         print("Begin initial evaluation")
         eval_result = self.evaluator.evaluate(x, df_cargos,  df_containers, self.omega)
-        print("Completed initial evaluation")
+        for solution in eval_result.solution_list:
+            print(solution.is_all_cargo_packed, solution.is_cog_feasible, solution.container_cogs)
+        eval_result = feasibility_repair(eval_result, self.evaluator) #, self.max_feasibility_repair_iteration
+               
+        for solution in eval_result.solution_list:
+            print(solution.is_all_cargo_packed, solution.is_cog_feasible, solution.container_cogs)
+            if len(solution.container_dims)==0:
+                continue
+            container_dim=solution.container_dims[0,:]
+            cc_positions = solution.positions
+            cc_rotation_mats = solution.rotation_mats
+            cc_dims = solution.cargo_dims
+            visualize_box(container_dim, cc_positions, cc_dims, cc_rotation_mats, show=True)
+        exit()
+        # print("Completed initial evaluation")
+        # print("initial solution",x)
+        # print("fitness", eval_result.score)
         cargo_volumes = eval_result.cargo_volumes
         cargo_prices = eval_result.cargo_prices
         cargo_weights = eval_result.cargo_weights
+        # print('cargo_volumes',cargo_volumes)
+        # print("cargo vol per cont", x.dot(cargo_volumes), x.dot(cargo_weights))
         cargo_ratios = eval_result.cargo_ratios
         cargo_loads = eval_result.cargo_loads
-        container_max_volume = eval_result.max_container_volume
-        container_max_weight = eval_result.max_container_weight
-        container_cost = eval_result.container_cost
-        
-        score = eval_result.score
+        container_max_volumes = eval_result.max_container_volumes
+        # print('container vol', container_max_volume)
+        container_max_weights = eval_result.max_container_weights
+        container_costs = eval_result.container_costs
+        container_dims = eval_result.container_dim
+        # print('container cost....', container_costs)
+        # print('container dim', container_dims)
 
+        score = eval_result.score
+  
         destroy_scores = np.ones((len(self.destroy_operators),))
         repair_scores = np.ones((len(self.repair_operators),))
         destroy_counts = np.zeros((len(self.destroy_operators),))
@@ -125,8 +149,8 @@ class ALNS_W():
             "cargo_weights": cargo_weights,
             "cargo_ratios": cargo_ratios,
             "cargo_loads": cargo_loads,
-            "container_max_volume": container_max_volume,
-            "container_max_weight": container_max_weight,
+            "container_max_volumes": container_max_volumes,
+            "container_max_weights": container_max_weights,
         }
         
         not_improving_count = 0
@@ -153,9 +177,12 @@ class ALNS_W():
             next_score = compute_obj(next_x,
                                      cargo_volumes,
                                      cargo_prices,
-                                     container_cost,
-                                     container_max_volume,
+                                     container_costs,
+                                     container_max_volumes,
                                      self.omega)
+            print('Ini solusi',next_x)
+            print('ini fitness',next_score)
+            print("cargo vol", next_x.dot(cargo_volumes), next_x.dot(cargo_weights))
             if not eval_result.is_feasible or (eval_result.is_feasible and score < next_score):
                 next_eval_result = self.evaluator.evaluate(next_x, df_cargos, df_containers, self.omega)
                 if not next_eval_result.is_feasible:
@@ -188,6 +215,10 @@ class ALNS_W():
                 # print(next_eval_result.cog_feasibility_ratio, best_eval_result.cog_feasibility_ratio)
                 # print(next_eval_result.is_all_cargo_packed, best_eval_result.is_all_cargo_packed)
                 # print(next_eval_result.packing_feasibility_ratio, best_eval_result.packing_feasibility_ratio)
+                # print([solution.container_cogs for solution in next_eval_result.solution_list], next_eval_result.score, next_eval_result.packing_feasibility_ratio, next_eval_result.cog_feasibility_ratio)
+                # print([solution.container_cogs for solution in best_eval_result.solution_list], best_eval_result.score, best_eval_result.packing_feasibility_ratio, best_eval_result.cog_feasibility_ratio)
+                # print(is_better(next_eval_result, best_eval_result),  next_eval_result.packing_feasibility_ratio > best_eval_result.packing_feasibility_ratio, next_eval_result.cog_feasibility_ratio > best_eval_result.packing_feasibility_ratio)
+                # print("------------------------------------------")
                 if is_better(next_eval_result, best_eval_result):
                     # print("yes")
                     # print(next_eval_result.cog_feasibility_ratio)

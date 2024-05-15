@@ -14,7 +14,7 @@ from heuristic.alns_wahyu.arguments import prepare_args
 from heuristic.alns_wahyu.evaluator.safak_evaluator import SafakEvaluator
 from heuristic.alns_wahyu.operator.destroy import RandomRemoval, WorstRemoval
 from heuristic.alns_wahyu.operator.repair import GreedyRepair, RandomRepair
-
+from solver.utils import visualize_box   
 
 def setup_destroy_operators(args):
     operator_list = [RandomRemoval(), WorstRemoval()]
@@ -167,10 +167,10 @@ def visualization(visualization_data, title):
                 dimensions = (row['Length'], row['Width'], row['Height'])
                 draw_cuboid(ax, coordinate, dimensions)
                 # Label at the center of the top face of the cuboid
-                # ax.text(coordinate[0] + dimensions[0]/2, 
-                #         coordinate[1] + dimensions[1]/2, 
-                #         coordinate[2] + dimensions[2], 
-                #         str(row['Item']), color='red', ha='center', va='bottom')
+                ax.text(coordinate[0] + dimensions[0]/2, 
+                        coordinate[1] + dimensions[1]/2, 
+                        coordinate[2] + dimensions[2], 
+                        str(int(row['Item'])), color='red', ha='center', va='bottom')
 
             # Set the view angle
             ax.view_init(elev=38, azim=215)
@@ -204,7 +204,7 @@ def run(args):
     log_writer = setup_log_writer(args)
     alns_solver = ALNS_W(destroy_operators,
                          repair_operators,
-                         SafakEvaluator(),
+                         SafakEvaluator(args.insertion_mode, args.cargo_sort_criterion),
                          log_writer,
                          args.max_iteration,
                         #  args.max_feasibility_repair_iteration,
@@ -236,6 +236,7 @@ def run(args):
     # plot_repair_counts(alns_solver.repair_operators, alns_solver.repair_count_logs, args.title)
     print('Total item', best_result.num_cargo_packed)
     print('Best fitness',best_result.score)
+    print("cargo vol", best_result.x.dot(best_result.cargo_volumes), best_result.x.dot(best_result.cargo_weights))
     for d_idx in range(len(alns_solver.destroy_operators)):
         print(str(destroy_operators[d_idx])+" Count", alns_solver.destroy_counts[d_idx])
     for r_idx in range(len(alns_solver.repair_operators)):
@@ -320,14 +321,15 @@ def parse_details(details):
 
 if __name__ == "__main__":
     args = prepare_args()
-    # random.seed(args.seed)
-    # np.random.seed(args.seed)
+    random.seed(args.seed)
+    np.random.seed(args.seed)
     # matplotlib.use("Agg")
-    # run(args)
+    run(args)
+    exit()
     
-    excel_filename = 'output_results2.xlsx'  # Explicit filename for ease of use
+    excel_filename = args.title+'_result.xlsx'  # Explicit filename for ease of use
     temp_files = []  # List to track temporary files
-    rep=1
+    rep=args.num_replication
 
     recap_data = {
         'Replication': [],
@@ -430,10 +432,35 @@ if __name__ == "__main__":
             recap_data['Expenses'].append((Exp))
             # Calculate a single representative value for Center of Gravity, if necessary
             recap_data['Center of Gravity'].append((CoG))
+            
+            visualization_info_list = []
+            for s_idx, solution in enumerate(best_result.solution_list):
+                if len(solution.positions)==0:
+                    continue
+                real_dims = solution.real_cargo_dims
+                container_dim = solution.container_dims[0,:]
+                for c_idx in range(len(solution.positions)):
+                    info = {}
+                    position = solution.positions[c_idx]
+                    real_dim = real_dims[c_idx]
+                    info["Item"] = solution.cargo_type_ids[c_idx]
+                    info["Container"] = s_idx
+                    info["X"] = position[0]
+                    info["Y"] = position[1]
+                    info["Z"] = position[2]
+                    info["Length"] = real_dim[0]
+                    info["Width"] = real_dim[1]
+                    info["Height"] = real_dim[2]
+                    info["ContainerLength"] = container_dim[0]
+                    info["ContainerWidth"]  = container_dim[1]
+                    info["ContainerHeight"] = container_dim[2]
+                    visualization_info_list += [info]
+            visualization_df = pd.DataFrame(visualization_info_list, columns=["Item",	"Container",	"X",	"Y",	"Z",	"Length",	"Width",	"Height",	"ContainerLength",	"ContainerWidth",	"ContainerHeight"])
 
             # Data for each replication to 
             df = pd.DataFrame(data)
             df.to_excel(writer, sheet_name=f'Replication {i+1}')
+            visualization_df.to_excel(writer, sheet_name=f'Replication {i+1}', startrow=len(df)+5)
 
     with pd.ExcelWriter(excel_filename, engine='openpyxl', mode='a') as writer:
         recap_df = pd.DataFrame(recap_data)
@@ -463,7 +490,7 @@ if __name__ == "__main__":
             info["ContainerHeight"] = container_dim[2]
             visualization_info_list += [info]
     visualization_df = pd.DataFrame(visualization_info_list, columns=["Item",	"Container",	"X",	"Y",	"Z",	"Length",	"Width",	"Height",	"ContainerLength",	"ContainerWidth",	"ContainerHeight"])
-
+    
     wb = load_workbook(excel_filename)
     unique_containers = visualization_df['Container'].unique()
     for i in range(rep):

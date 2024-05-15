@@ -16,7 +16,7 @@ class Evaluator(ABC):
     def solve(self, 
               ccm:np.ndarray, 
               df_cargos: pd.DataFrame, 
-              df_containers: pd.DataFrame)->SolutionBase:
+              df_container: pd.DataFrame)->SolutionBase:
         pass
 
     def evaluate(self, 
@@ -29,7 +29,7 @@ class Evaluator(ABC):
             if not np.any(chosen_cargo_mask):
                 solution_list += [SolutionBase(Problem([],[]))]
                 continue
-            solution = self.solve(chosen_cargo_mask, df_cargos, df_containers)
+            solution = self.solve(chosen_cargo_mask, df_cargos, df_containers.iloc[[container_idx]])
             solution_list += [solution]
         return EvaluationResult(df_cargos, df_containers, x, solution_list, omega)
 

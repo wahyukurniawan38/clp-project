@@ -22,6 +22,7 @@ def feasibility_repair(eval_result:EvaluationResult,
         eval_result = repair_cog(eval_result)
         if eval_result.is_feasible:
            break
+        return eval_result
         r = randint(0,3)
         is_success = False
         new_x = None

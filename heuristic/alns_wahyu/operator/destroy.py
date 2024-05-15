@@ -10,8 +10,8 @@ class RandomRemoval:
                  cargo_weights:np.ndarray,
                  cargo_ratios:np.ndarray,
                  cargo_loads:np.ndarray,
-                 container_max_volume:float,
-                 container_max_weight:float,
+                 container_max_volumes:np.ndarray,
+                 container_max_weights:np.ndarray,
                  *args,
                  **kwargs) -> np.ndarray:
         nof = kwargs["nof"]
@@ -57,8 +57,8 @@ class WorstRemoval:
                  cargo_weights:np.ndarray,
                  cargo_ratios:np.ndarray,
                  cargo_loads:np.ndarray,
-                 container_max_volume:float,
-                 container_max_weight:float,
+                 container_max_volumes:np.ndarray,
+                 container_max_weights:np.ndarray,
                  *args,
                  **kwargs)->np.ndarray:
         nof = kwargs["nof"]

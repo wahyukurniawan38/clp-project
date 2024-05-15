@@ -5,8 +5,10 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import numpy as np
 import random as rand
+import os
 
 from solver.problem import Problem
+from heuristic.alns_wahyu.arguments import prepare_args
 
 def init_positions(problem:Problem, positions: np.ndarray=None):
     if positions is not None:
@@ -151,7 +153,7 @@ def visualize_box(container_dim:np.ndarray,
                     color=color,text_annot="")
         counter = counter + 1  
     if show:
-        plt.show() 
+        plt.show()
     return plt.gcf()
 
 

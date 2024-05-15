@@ -22,7 +22,7 @@ def add_item_to_container(solution: Solution,
     addition_points = get_addition_points(cc_positions, cc_real_dims, container_dim)
     sorted_ap_idx = argsort_addition_points(addition_points, mode)
     addition_points = addition_points[sorted_ap_idx]
-
+    # visualize_box(container_dim,cc_positions,cc_dims,cc_rotation_mats, show=True)
 
     # order cargo by the preset cargo type priority
     c_type = solution.cargo_types[cargo_idx]
@@ -84,7 +84,9 @@ def add_item_to_container(solution: Solution,
         # addition_points = filter_infeasible_addition_points(addition_points, cc_positions, cc_real_dims, container_dim)
         sorted_ap_idx = argsort_addition_points(addition_points, mode)
         addition_points = addition_points[sorted_ap_idx]
-
+    
     is_not_inserted = np.logical_not(is_inserted)
     not_inserted_cargo_idx = cargo_idx[is_not_inserted]
+    
     return solution, not_inserted_cargo_idx
+

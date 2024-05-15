@@ -23,8 +23,10 @@ from heuristic.lns_safak.insert import add_item_to_container
             7. add_item_to_container, all the unpacked items of this type
     8. check if there are no more unpacked items,
     then set is_feasible=True
-"""     
-def constructive_heuristic(solution:Solution, insertion_mode="wall-building"):
+
+    insertion_mode=["wall-building", "layer-building", "column-building"]
+    """     
+def constructive_heuristic(solution:Solution, insertion_mode:str="wall-building"):
     container_filled_volumes = solution.container_filled_volumes
     container_costs = solution.container_costs
     sorted_container_idx = np.lexsort((-container_costs, -container_filled_volumes))

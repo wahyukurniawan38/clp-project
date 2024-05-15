@@ -55,7 +55,9 @@ class SolutionBase:
             return True
         min_cogs = self.container_dims[:,:2]/2 - self.container_cog_tolerances[np.newaxis,:]
         max_cogs = self.container_dims[:,:2]/2 + self.container_cog_tolerances[np.newaxis,:]
-        return np.all(np.logical_and(self.container_cogs>=min_cogs, self.container_cogs<=max_cogs))
+        is_inside_range = np.all(np.logical_and(self.container_cogs>=min_cogs, self.container_cogs<=max_cogs))
+        # print(min_cogs, max_cogs, self.container_cogs, is_inside_range)
+        return is_inside_range
 
     def __str__(self) -> str:
         is_cargo_packed = self.cargo_container_maps>=0
